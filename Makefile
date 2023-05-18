@@ -4,7 +4,7 @@ INCLUDEDIR = include
 SRCDIR = src/*.cpp
 BIN = out/main
 
-MAINFLAGS     = -Werror -Wall -Wextra -Wuninitialized -Wshadow -Wundef -O1
+MAINFLAGS     = -Werror -Wall -Wextra -Wuninitialized -Wshadow -Wundef -O3
 CTRLFLOWFLAGS = -Winit-self -Wswitch-enum -Wswitch-default -Wformat=2 -Wformat-extra-args
 ARITHFLAGS    = -Wfloat-equal -Wpointer-arith
 CASTCONVFLAGS = -Wstrict-overflow=5 -Wcast-qual -Wcast-align -Wconversion -Wpacked
