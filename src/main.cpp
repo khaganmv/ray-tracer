@@ -31,7 +31,7 @@ int main() {
                 .rotateX(scene.cameraRotation.x)
                 .rotateY(scene.cameraRotation.y)
                 .rotateZ(scene.cameraRotation.z);
-            Color color = scene.traceRay(scene.cameraPosition, ray, 1.0, INFINITY);
+            Color color = scene.traceRay(scene.cameraPosition, ray, 1.0, INFINITY, 3);
             
             putPixel(x, y, color);
         }

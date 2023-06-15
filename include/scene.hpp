@@ -17,18 +17,25 @@ struct Scene {
     vector<Directional> directionalLights;
 
     Vector3 toViewport(int x, int y, int canvasWidth, int canvasHeight);
-    Color traceRay(Vector3 origin, Vector3 ray, double tMin, double tMax);
+    Color traceRay(
+        Vector3 origin, Vector3 ray, double tMin, double tMax, int recursionDepth
+    );
     double computeTotalLighting(
         Vector3 point, Vector3 normal, Vector3 inverse, int specularity
     );
     double computeLighting(
-        double intensity, Vector3 light, 
-        Vector3 normal, Vector3 inverse, int specularity
+        double intensity, Vector3 light, double tMax, 
+        Vector3 point, Vector3 normal, Vector3 inverse, int specularity
     );
     Vector3 reflectRay(Vector3 ray, Vector3 normal);
+    tuple<bool, double, int> closestIntersection(
+        Vector3 origin, Vector3 ray, double tMin, double tMax
+    );
 
     static vector<Triangle> parseOBJ(string OBJPath);
     static Scene teapot();
+    static Scene suzanne();
+    static Scene bunny();
 };
 
 /* Definitions */
@@ -41,24 +48,15 @@ Vector3 Scene::toViewport(int x, int y, int canvasWidth, int canvasHeight) {
     };
 }
 
-Color Scene::traceRay(Vector3 origin, Vector3 ray, double tMin, double tMax) {
-    double closestT = INFINITY;
-    int closestTriangleIndex = -1;
+Color Scene::traceRay(
+    Vector3 origin, Vector3 ray, double tMin, double tMax, int recursionDepth
+) {
+    tuple<bool, double, int> intersection = closestIntersection(origin, ray, tMin, tMax);
+    bool intersectsAny = std::get<0>(intersection);
+    double closestT = std::get<1>(intersection);
+    int closestTriangleIndex = std::get<2>(intersection);
 
-    for (size_t i = 0; i < this->triangles.size(); i++) {
-        tuple<bool, double> intersection = triangles[i].intersectRay(origin, ray);
-        bool intersects = std::get<0>(intersection);
-        double t = std::get<1>(intersection);
-
-        if (intersects) {
-            if (t > tMin && t < tMax && t < closestT) {
-                closestT = t;
-                closestTriangleIndex = static_cast<int>(i);
-            }
-        }
-    }
-
-    if (closestTriangleIndex == -1) {
+    if (!intersectsAny) {
         return backgroundColor;
     }
 
@@ -68,8 +66,18 @@ Color Scene::traceRay(Vector3 origin, Vector3 ray, double tMin, double tMax) {
     Color color = closestTriangle.color;
     Vector3 normal = closestTriangle.normal;
     int specularity = closestTriangle.specularity;
+    double reflectivity = closestTriangle.reflectivity;
 
-    return color * computeTotalLighting(point, normal, -ray, specularity);
+    Color localColor = color * computeTotalLighting(point, normal, -ray, specularity);
+
+    if (recursionDepth == 0 || reflectivity < 0) {
+        return localColor;
+    }
+
+    Vector3 reflected = reflectRay(-ray, normal);
+    Color reflectedColor = traceRay(point, reflected, 0.001, INFINITY, recursionDepth - 1);
+    
+    return localColor * (1 - reflectivity) + reflectedColor * reflectivity;
 }
 
 double Scene::computeTotalLighting(
@@ -79,15 +87,15 @@ double Scene::computeTotalLighting(
 
     for (Point pointLight : pointLights) {
         totalIntensity += computeLighting(
-            pointLight.intensity, pointLight.position - point, 
-            normal, inverse, specularity
+            pointLight.intensity, pointLight.position - point, 1, 
+            point, normal, inverse, specularity
         );
     }
 
     for (Directional directionalLight : directionalLights) {
         totalIntensity += computeLighting(
-            directionalLight.intensity, directionalLight.direction, 
-            normal, inverse, specularity
+            directionalLight.intensity, directionalLight.direction, INFINITY, 
+            point, normal, inverse, specularity
         );
     }
 
@@ -95,10 +103,19 @@ double Scene::computeTotalLighting(
 }
 
 double Scene::computeLighting(
-    double intensity, Vector3 light, 
-    Vector3 normal, Vector3 inverse, int specularity
+    double intensity, Vector3 light, double tMax, 
+    Vector3 point, Vector3 normal, Vector3 inverse, int specularity
 ) {
     double totalIntensity = 0.0;
+
+    /* Shadow check */
+    tuple<bool, double, int> intersection = closestIntersection(point, light, 0.001, tMax);
+    bool intersectsAny = std::get<0>(intersection);
+
+    if (intersectsAny) {
+        return totalIntensity;
+    }
+
     double normalDotLight = normal.dot(light); // ||N|| * ||L|| * cos(a)
 
     if (normalDotLight > 0.0) {
@@ -121,6 +138,30 @@ double Scene::computeLighting(
 
 Vector3 Scene::reflectRay(Vector3 ray, Vector3 normal) {
     return 2 * normal * normal.dot(ray) - ray;
+}
+
+tuple<bool, double, int> Scene::closestIntersection(
+    Vector3 origin, Vector3 ray, double tMin, double tMax
+) {
+    bool intersectsAny = false;
+    double closestT = INFINITY;
+    int closestTriangleIndex = -1;
+
+    for (size_t i = 0; i < this->triangles.size(); i++) {
+        tuple<bool, double> intersection = triangles[i].intersectRay(origin, ray);
+        bool intersects = std::get<0>(intersection);
+        double t = std::get<1>(intersection);
+
+        if (intersects) {
+            if (t > tMin && t < tMax && t < closestT) {
+                intersectsAny = true;
+                closestT = t;
+                closestTriangleIndex = static_cast<int>(i);
+            }
+        }
+    }
+
+    return { intersectsAny, closestT, closestTriangleIndex };
 }
 
 vector<Triangle> Scene::parseOBJ(string OBJPath) {
@@ -151,7 +192,8 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
                     vertices[j - 1], 
                     vertices[k - 1], 
                     {169, 169, 169}, 
-                    1
+                    1, 
+                    -1
                 }
             );
         }
@@ -174,8 +216,50 @@ Scene Scene::teapot() {
         .pointLights = {}, 
         .directionalLights = {
             {
-                0.6, 
+                0.5, 
                 {-1, 0, -1}
+            }
+        }
+    };
+
+    return scene;
+}
+
+/* 15488 faces */
+Scene Scene::suzanne() {
+    Scene scene = {
+        .viewport = {1, 1, 1}, 
+        .cameraPosition = {-1, 0, 4}, 
+        .cameraRotation = {0, 165, 0}, 
+        .backgroundColor = {0, 0, 0}, 
+        .triangles = parseOBJ("scenes/suzanne.obj"), 
+        .ambientLight = 0.2, 
+        .pointLights = {}, 
+        .directionalLights = {
+            {
+                0.5, 
+                {1, 0, 3}
+            }
+        }
+    };
+
+    return scene;
+}
+
+/* 69630 faces */
+Scene Scene::bunny() {
+    Scene scene = {
+        .viewport = {1, 1, 1}, 
+        .cameraPosition = {-0.4, 1.25, 6}, 
+        .cameraRotation = {0, 180, 0}, 
+        .backgroundColor = {0, 0, 0}, 
+        .triangles = parseOBJ("scenes/bunny.obj"), 
+        .ambientLight = 0.2, 
+        .pointLights = {}, 
+        .directionalLights = {
+            {
+                0.5, 
+                {1, 0, 5}
             }
         }
     };
