@@ -9,10 +9,11 @@ struct Triangle {
     Vector3 v0, v1, v2;
     Color color;
     Vector3 normal;
+    int specularity;
 
     Triangle(
-        Vector3 _v0, Vector3 _v1, Vector3 _v2, Color _color
-    ) : v0(_v0), v1(_v1), v2(_v2), color(_color) {
+        Vector3 _v0, Vector3 _v1, Vector3 _v2, Color _color, int _specularity
+    ) : v0(_v0), v1(_v1), v2(_v2), color(_color), specularity(_specularity) {
         Vector3 e01 = this->v1 - this->v0;
         Vector3 e02 = this->v2 - this->v0;
         this->normal = e01.cross(e02);

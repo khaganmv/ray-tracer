@@ -22,7 +22,7 @@ run: all
 	./$(BIN)
 
 clean:
-	rm -f out/*
+	rm -f out/main
 
 valgrind: all
 	valgrind --leak-check=full ./$(BIN)
