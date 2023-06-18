@@ -1,4 +1,4 @@
-.PHONY: run clean valgrind
+.PHONY: run clean valgrind profile
 
 INCLUDEDIR = include
 SRCDIR = src/*.cpp
@@ -26,3 +26,8 @@ clean:
 
 valgrind: all
 	valgrind --leak-check=full ./$(BIN)
+
+profile: override CXXFLAGS += -pg
+profile: run
+	gprof $(BIN) gmon.out > out/profile.txt
+	rm -f gmon.out

@@ -1,0 +1,357 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  us/call  us/call  name    
+ 32.02     33.77    33.77 15902415160     0.00     0.00  operator-(Vector3, Vector3)
+ 22.42     57.42    23.65 2650393120     0.01     0.04  Triangle::intersectRay(Vector3, Vector3)
+ 20.11     78.64    21.21 12623367996     0.00     0.00  Vector3::dot(Vector3)
+ 10.24     89.44    10.80 4671906424     0.00     0.00  Vector3::cross(Vector3)
+  6.04     95.81     6.37 2650496296     0.00     0.00  operator*(double, Vector3)
+  5.67    101.80     5.99 2650452484     0.00     0.00  operator+(Vector3, Vector3)
+  3.19    105.17     3.37   419366     8.04   250.78  Scene::closestIntersection(Vector3, Vector3, double, double)
+  0.21    105.39     0.22   103178     2.13     2.13  operator*(Vector3, double)
+  0.04    105.43     0.04   360000     0.11     0.11  putPixel(int, int, Color)
+  0.03    105.46     0.03   360000     0.08   292.83  Scene::traceRay(Vector3, Vector3, double, double, int)
+  0.01    105.47     0.01   360000     0.03     0.03  Scene::toViewport(int, int, int, int)
+  0.01    105.48     0.01   360000     0.03     0.03  Vector3::rotateZ(double)
+  0.01    105.49     0.01                             _init
+  0.00    105.49     0.00  1080000     0.00     0.00  toRadians(double)
+  0.00    105.49     0.00   360000     0.00     0.00  Color::normalize()
+  0.00    105.49     0.00   360000     0.00     0.00  Vector3::rotateX(double)
+  0.00    105.49     0.00   360000     0.00     0.00  Vector3::rotateY(double)
+  0.00    105.49     0.00   157100     0.00     0.00  Vector3::magnitude()
+  0.00    105.49     0.00    59366     0.00   252.37  Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int)
+  0.00    105.49     0.00    59366     0.00   252.37  Scene::computeTotalLighting(Vector3, Vector3, Vector3, int)
+  0.00    105.49     0.00    59366     0.00     2.13  Vector3::operator-()
+  0.00    105.49     0.00    59366     0.00     0.00  operator*(Color, double)
+  0.00    105.49     0.00    43812     0.00     2.14  Scene::reflectRay(Vector3, Vector3)
+  0.00    105.49     0.00     6320     0.00     0.00  Vector3::normalize()
+  0.00    105.49     0.00     6320     0.00     0.00  Triangle& std::vector<Triangle, std::allocator<Triangle> >::emplace_back<Triangle>(Triangle&&)
+  0.00    105.49     0.00     6320     0.00     0.00  operator/(Vector3, double)
+  0.00    105.49     0.00     3644     0.00     0.00  Vector3& std::vector<Vector3, std::allocator<Vector3> >::emplace_back<Vector3>(Vector3&&)
+  0.00    105.49     0.00       14     0.00     0.00  void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&)
+  0.00    105.49     0.00       13     0.00     0.00  void std::vector<Vector3, std::allocator<Vector3> >::_M_realloc_insert<Vector3>(__gnu_cxx::__normal_iterator<Vector3*, std::vector<Vector3, std::allocator<Vector3> > >, Vector3&&)
+  0.00    105.49     0.00        2     0.00     0.00  Scene::~Scene()
+  0.00    105.49     0.00        1     0.00     0.00  saveCanvas()
+  0.00    105.49     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00    105.49     0.00        1     0.00    52.08  Scene::teapot()
+  0.00    105.49     0.00        1     0.00    52.08  Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)
+  0.00    105.49     0.00        1     0.00     0.00  Scene::operator=(Scene&&)
+  0.00    105.49     0.00        1     0.00     0.00  void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) for 0.01% of 105.49 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.00  105.48                 main [1]
+                0.03  105.39  360000/360000      Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+                0.04    0.00  360000/360000      putPixel(int, int, Color) [15]
+                0.01    0.00  360000/360000      Scene::toViewport(int, int, int, int) [16]
+                0.01    0.00  360000/360000      Vector3::rotateZ(double) [17]
+                0.00    0.00       1/1           Scene::teapot() [20]
+                0.00    0.00  360000/360000      Vector3::rotateX(double) [31]
+                0.00    0.00  360000/360000      Vector3::rotateY(double) [32]
+                0.00    0.00       2/2           Scene::~Scene() [39]
+                0.00    0.00       1/1           Scene::operator=(Scene&&) [42]
+                0.00    0.00       1/1           saveCanvas() [40]
+-----------------------------------------------
+                0.03  105.39  360000/360000      main [1]
+[2]     99.9    0.03  105.39  360000         Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+                2.89   87.39  360000/419366      Scene::closestIntersection(Vector3, Vector3, double, double) [3]
+                0.00   14.98   59366/59366       Scene::computeTotalLighting(Vector3, Vector3, Vector3, int) [8]
+                0.00    0.13   59366/59366       Vector3::operator-() [13]
+                0.00    0.00   59366/2650496296     operator*(double, Vector3) [10]
+                0.00    0.00   59366/2650452484     operator+(Vector3, Vector3) [11]
+                0.00    0.00   59366/59366       operator*(Color, double) [33]
+-----------------------------------------------
+                0.48   14.41   59366/419366      Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int) [7]
+                2.89   87.39  360000/419366      Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+[3]     99.7    3.37  101.80  419366         Scene::closestIntersection(Vector3, Vector3, double, double) [3]
+               23.65   78.15 2650393120/2650393120     Triangle::intersectRay(Vector3, Vector3) [4]
+-----------------------------------------------
+               23.65   78.15 2650393120/2650393120     Scene::closestIntersection(Vector3, Vector3, double, double) [3]
+[4]     96.5   23.65   78.15 2650393120         Triangle::intersectRay(Vector3, Vector3) [4]
+               33.77    0.00 15902358708/15902415160     operator-(Vector3, Vector3) [5]
+               21.21    0.00 12623079460/12623367996     Vector3::dot(Vector3) [6]
+               10.80    0.00 4671900104/4671906424     Vector3::cross(Vector3) [9]
+                6.37    0.00 2650393118/2650496296     operator*(double, Vector3) [10]
+                5.98    0.00 2650393118/2650452484     operator+(Vector3, Vector3) [11]
+-----------------------------------------------
+                0.00    0.00   12640/15902415160     Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [21]
+                0.00    0.00   43812/15902415160     Scene::reflectRay(Vector3, Vector3) [14]
+               33.77    0.00 15902358708/15902415160     Triangle::intersectRay(Vector3, Vector3) [4]
+[5]     32.0   33.77    0.00 15902415160         operator-(Vector3, Vector3) [5]
+-----------------------------------------------
+                0.00    0.00   43812/12623367996     Scene::reflectRay(Vector3, Vector3) [14]
+                0.00    0.00   87624/12623367996     Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int) [7]
+                0.00    0.00  157100/12623367996     Vector3::magnitude() [19]
+               21.21    0.00 12623079460/12623367996     Triangle::intersectRay(Vector3, Vector3) [4]
+[6]     20.1   21.21    0.00 12623367996         Vector3::dot(Vector3) [6]
+-----------------------------------------------
+                0.00   14.98   59366/59366       Scene::computeTotalLighting(Vector3, Vector3, Vector3, int) [8]
+[7]     14.2    0.00   14.98   59366         Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int) [7]
+                0.48   14.41   59366/419366      Scene::closestIntersection(Vector3, Vector3, double, double) [3]
+                0.00    0.09   43812/43812       Scene::reflectRay(Vector3, Vector3) [14]
+                0.00    0.00  150780/157100      Vector3::magnitude() [19]
+                0.00    0.00   87624/12623367996     Vector3::dot(Vector3) [6]
+-----------------------------------------------
+                0.00   14.98   59366/59366       Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+[8]     14.2    0.00   14.98   59366         Scene::computeTotalLighting(Vector3, Vector3, Vector3, int) [8]
+                0.00   14.98   59366/59366       Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int) [7]
+-----------------------------------------------
+                0.00    0.00    6320/4671906424     Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [21]
+               10.80    0.00 4671900104/4671906424     Triangle::intersectRay(Vector3, Vector3) [4]
+[9]     10.2   10.80    0.00 4671906424         Vector3::cross(Vector3) [9]
+-----------------------------------------------
+                0.00    0.00   43812/2650496296     Scene::reflectRay(Vector3, Vector3) [14]
+                0.00    0.00   59366/2650496296     Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+                6.37    0.00 2650393118/2650496296     Triangle::intersectRay(Vector3, Vector3) [4]
+[10]     6.0    6.37    0.00 2650496296         operator*(double, Vector3) [10]
+-----------------------------------------------
+                0.00    0.00   59366/2650452484     Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+                5.98    0.00 2650393118/2650452484     Triangle::intersectRay(Vector3, Vector3) [4]
+[11]     5.7    5.99    0.00 2650452484         operator+(Vector3, Vector3) [11]
+-----------------------------------------------
+                0.09    0.00   43812/103178      Scene::reflectRay(Vector3, Vector3) [14]
+                0.13    0.00   59366/103178      Vector3::operator-() [13]
+[12]     0.2    0.22    0.00  103178         operator*(Vector3, double) [12]
+-----------------------------------------------
+                0.00    0.13   59366/59366       Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+[13]     0.1    0.00    0.13   59366         Vector3::operator-() [13]
+                0.13    0.00   59366/103178      operator*(Vector3, double) [12]
+-----------------------------------------------
+                0.00    0.09   43812/43812       Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int) [7]
+[14]     0.1    0.00    0.09   43812         Scene::reflectRay(Vector3, Vector3) [14]
+                0.09    0.00   43812/103178      operator*(Vector3, double) [12]
+                0.00    0.00   43812/2650496296     operator*(double, Vector3) [10]
+                0.00    0.00   43812/15902415160     operator-(Vector3, Vector3) [5]
+                0.00    0.00   43812/12623367996     Vector3::dot(Vector3) [6]
+-----------------------------------------------
+                0.04    0.00  360000/360000      main [1]
+[15]     0.0    0.04    0.00  360000         putPixel(int, int, Color) [15]
+-----------------------------------------------
+                0.01    0.00  360000/360000      main [1]
+[16]     0.0    0.01    0.00  360000         Scene::toViewport(int, int, int, int) [16]
+-----------------------------------------------
+                0.01    0.00  360000/360000      main [1]
+[17]     0.0    0.01    0.00  360000         Vector3::rotateZ(double) [17]
+                0.00    0.00  360000/1080000     toRadians(double) [29]
+-----------------------------------------------
+                                                 <spontaneous>
+[18]     0.0    0.01    0.00                 _init [18]
+-----------------------------------------------
+                0.00    0.00    6320/157100      Vector3::normalize() [22]
+                0.00    0.00  150780/157100      Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int) [7]
+[19]     0.0    0.00    0.00  157100         Vector3::magnitude() [19]
+                0.00    0.00  157100/12623367996     Vector3::dot(Vector3) [6]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[20]     0.0    0.00    0.00       1         Scene::teapot() [20]
+                0.00    0.00       1/1           Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [21]
+                0.00    0.00       1/1           void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag) [43]
+-----------------------------------------------
+                0.00    0.00       1/1           Scene::teapot() [20]
+[21]     0.0    0.00    0.00       1         Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [21]
+                0.00    0.00   12640/15902415160     operator-(Vector3, Vector3) [5]
+                0.00    0.00    6320/4671906424     Vector3::cross(Vector3) [9]
+                0.00    0.00    6320/6320        Vector3::normalize() [22]
+                0.00    0.00    6320/6320        Triangle& std::vector<Triangle, std::allocator<Triangle> >::emplace_back<Triangle>(Triangle&&) [34]
+                0.00    0.00    3644/3644        Vector3& std::vector<Vector3, std::allocator<Vector3> >::emplace_back<Vector3>(Vector3&&) [36]
+-----------------------------------------------
+                0.00    0.00    6320/6320        Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [21]
+[22]     0.0    0.00    0.00    6320         Vector3::normalize() [22]
+                0.00    0.00    6320/157100      Vector3::magnitude() [19]
+                0.00    0.00    6320/6320        operator/(Vector3, double) [35]
+-----------------------------------------------
+                0.00    0.00  360000/1080000     Vector3::rotateX(double) [31]
+                0.00    0.00  360000/1080000     Vector3::rotateY(double) [32]
+                0.00    0.00  360000/1080000     Vector3::rotateZ(double) [17]
+[29]     0.0    0.00    0.00 1080000         toRadians(double) [29]
+-----------------------------------------------
+                0.00    0.00  360000/360000      saveCanvas() [40]
+[30]     0.0    0.00    0.00  360000         Color::normalize() [30]
+-----------------------------------------------
+                0.00    0.00  360000/360000      main [1]
+[31]     0.0    0.00    0.00  360000         Vector3::rotateX(double) [31]
+                0.00    0.00  360000/1080000     toRadians(double) [29]
+-----------------------------------------------
+                0.00    0.00  360000/360000      main [1]
+[32]     0.0    0.00    0.00  360000         Vector3::rotateY(double) [32]
+                0.00    0.00  360000/1080000     toRadians(double) [29]
+-----------------------------------------------
+                0.00    0.00   59366/59366       Scene::traceRay(Vector3, Vector3, double, double, int) [2]
+[33]     0.0    0.00    0.00   59366         operator*(Color, double) [33]
+-----------------------------------------------
+                0.00    0.00    6320/6320        Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [21]
+[34]     0.0    0.00    0.00    6320         Triangle& std::vector<Triangle, std::allocator<Triangle> >::emplace_back<Triangle>(Triangle&&) [34]
+                0.00    0.00      14/14          void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&) [37]
+-----------------------------------------------
+                0.00    0.00    6320/6320        Vector3::normalize() [22]
+[35]     0.0    0.00    0.00    6320         operator/(Vector3, double) [35]
+-----------------------------------------------
+                0.00    0.00    3644/3644        Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [21]
+[36]     0.0    0.00    0.00    3644         Vector3& std::vector<Vector3, std::allocator<Vector3> >::emplace_back<Vector3>(Vector3&&) [36]
+                0.00    0.00      13/13          void std::vector<Vector3, std::allocator<Vector3> >::_M_realloc_insert<Vector3>(__gnu_cxx::__normal_iterator<Vector3*, std::vector<Vector3, std::allocator<Vector3> > >, Vector3&&) [38]
+-----------------------------------------------
+                0.00    0.00      14/14          Triangle& std::vector<Triangle, std::allocator<Triangle> >::emplace_back<Triangle>(Triangle&&) [34]
+[37]     0.0    0.00    0.00      14         void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&) [37]
+-----------------------------------------------
+                0.00    0.00      13/13          Vector3& std::vector<Vector3, std::allocator<Vector3> >::emplace_back<Vector3>(Vector3&&) [36]
+[38]     0.0    0.00    0.00      13         void std::vector<Vector3, std::allocator<Vector3> >::_M_realloc_insert<Vector3>(__gnu_cxx::__normal_iterator<Vector3*, std::vector<Vector3, std::allocator<Vector3> > >, Vector3&&) [38]
+-----------------------------------------------
+                0.00    0.00       2/2           main [1]
+[39]     0.0    0.00    0.00       2         Scene::~Scene() [39]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[40]     0.0    0.00    0.00       1         saveCanvas() [40]
+                0.00    0.00  360000/360000      Color::normalize() [30]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z9toRadiansd [44]
+[41]     0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [41]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[42]     0.0    0.00    0.00       1         Scene::operator=(Scene&&) [42]
+-----------------------------------------------
+                0.00    0.00       1/1           Scene::teapot() [20]
+[43]     0.0    0.00    0.00       1         void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag) [43]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [40] saveCanvas()            [2] Scene::traceRay(Vector3, Vector3, double, double, int) [36] Vector3& std::vector<Vector3, std::allocator<Vector3> >::emplace_back<Vector3>(Vector3&&)
+  [41] __static_initialization_and_destruction_0(int, int) [39] Scene::~Scene() [38] void std::vector<Vector3, std::allocator<Vector3> >::_M_realloc_insert<Vector3>(__gnu_cxx::__normal_iterator<Vector3*, std::vector<Vector3, std::allocator<Vector3> > >, Vector3&&)
+  [15] putPixel(int, int, Color) [42] Scene::operator=(Scene&&) [34] Triangle& std::vector<Triangle, std::allocator<Triangle> >::emplace_back<Triangle>(Triangle&&)
+  [29] toRadians(double)       [6] Vector3::dot(Vector3)  [37] void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&)
+  [30] Color::normalize()      [9] Vector3::cross(Vector3) [43] void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)
+  [14] Scene::reflectRay(Vector3, Vector3) [31] Vector3::rotateX(double) [35] operator/(Vector3, double)
+  [16] Scene::toViewport(int, int, int, int) [32] Vector3::rotateY(double) [5] operator-(Vector3, Vector3)
+   [7] Scene::computeLighting(double, Vector3, double, Vector3, Vector3, Vector3, int) [17] Vector3::rotateZ(double) [33] operator*(Color, double)
+   [3] Scene::closestIntersection(Vector3, Vector3, double, double) [19] Vector3::magnitude() [12] operator*(Vector3, double)
+   [8] Scene::computeTotalLighting(Vector3, Vector3, Vector3, int) [22] Vector3::normalize() [10] operator*(double, Vector3)
+  [20] Scene::teapot()        [13] Vector3::operator-()   [11] operator+(Vector3, Vector3)
+  [21] Scene::parseOBJ(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [4] Triangle::intersectRay(Vector3, Vector3) [18] _init
