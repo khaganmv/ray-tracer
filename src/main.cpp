@@ -1,14 +1,18 @@
 #include "scene.hpp"
 #include <iostream>
+#include <thread>
 
 #define CANVAS_PATH "out/canvas.ppm"
 #define CANVAS_WIDTH  600
 #define CANVAS_HEIGHT 600
 
+using std::thread;
+
 /* Declarations */
 
 array<array<Color, CANVAS_WIDTH>, CANVAS_HEIGHT> canvas;
 
+void render(Scene scene, int xMin, int xMax);
 void putPixel(int x, int y, Color color);
 void saveCanvas();
 
@@ -24,7 +28,33 @@ int main() {
         return -1;
     }
 
-    for (int x = -CANVAS_WIDTH / 2; x < CANVAS_WIDTH / 2; x++) {
+    vector<thread> threads;
+    int threadsSize = 8;
+
+    int start = -CANVAS_WIDTH / 2;
+    int step = CANVAS_WIDTH / threadsSize;
+
+    for (int i = 0; i < threadsSize; i++) {
+        threads.push_back(thread(render, scene, start, start + step));
+        start += step;
+    }
+
+    for (int i = 0; i < threadsSize; i++) {
+        threads[i].join();
+    }
+
+    try {
+        saveCanvas();
+    } catch (const char *e) {
+        std::cerr << e;
+        return -1;
+    }
+
+    return 0;
+}
+
+void render(Scene scene, int xMin, int xMax) {
+    for (int x = xMin; x < xMax; x++) {
         for (int y = -CANVAS_HEIGHT / 2; y < CANVAS_HEIGHT / 2; y++) {
             Vector3 ray = scene
                 .toViewport(x, y, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -36,15 +66,6 @@ int main() {
             putPixel(x, y, color);
         }
     }
-
-    try {
-        saveCanvas();
-    } catch (const char *e) {
-        std::cerr << e;
-        return -1;
-    }
-
-    return 0;
 }
 
 void putPixel(int x, int y, Color color) {
