@@ -1,22 +1,13 @@
-.PHONY: run clean valgrind
+.PHONY: run clean valgrind nvprof
 
 INCLUDEDIR = include
-SRCDIR = src/*.cpp
+SRCDIR = src/*.cu
 BIN = out/main
-
-MAINFLAGS     = -Werror -Wall -Wextra -Wuninitialized -Wshadow -Wundef -O3
-CTRLFLOWFLAGS = -Winit-self -Wswitch-enum -Wswitch-default -Wformat=2 -Wformat-extra-args
-ARITHFLAGS    = -Wfloat-equal -Wpointer-arith
-CASTCONVFLAGS = -Wstrict-overflow=5 -Wcast-qual -Wcast-align -Wconversion -Wpacked
-SANFLAGS      = -Wredundant-decls -Wmissing-declarations -Wmissing-field-initializers
-SPECFLAGS     = -Wzero-as-null-pointer-constant -Wctor-dtor-privacy -Wold-style-cast -Woverloaded-virtual
-
-CXXFLAGS = $(MAINFLAGS) $(CTRLFLOWFLAGS) $(ARITHFLAGS) $(CASTCONVFLAGS) $(SANFLAGS) $(SPECFLAGS)
 
 all: $(BIN)
 
 $(BIN): $(SRCDIR)
-	$(CXX) $^ -o $@ -I$(INCLUDEDIR) $(CXXFLAGS)
+	nvcc $^ -o $@ -I$(INCLUDEDIR) -O3
 
 run: all
 	./$(BIN)
@@ -26,3 +17,6 @@ clean:
 
 valgrind: all
 	valgrind --leak-check=full ./$(BIN)
+
+nvprof:
+	nvprof ./$(BIN)
