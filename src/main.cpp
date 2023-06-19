@@ -1,12 +1,14 @@
 #include "scene.hpp"
 #include <iostream>
 #include <thread>
+#include <chrono>
 
 #define CANVAS_PATH "out/canvas.ppm"
 #define CANVAS_WIDTH  600
 #define CANVAS_HEIGHT 600
 
 using std::thread;
+using namespace std::chrono;
 
 /* Declarations */
 
@@ -34,6 +36,8 @@ int main() {
     int start = -CANVAS_WIDTH / 2;
     int step = CANVAS_WIDTH / threadsSize;
 
+    auto bmStart = high_resolution_clock::now();
+
     for (int i = 0; i < threadsSize; i++) {
         threads.push_back(thread(render, scene, start, start + step));
         start += step;
@@ -42,6 +46,13 @@ int main() {
     for (int i = 0; i < threadsSize; i++) {
         threads[i].join();
     }
+
+    auto bmStop = high_resolution_clock::now();
+    auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
+
+    std::cout << "Duration: " 
+              << static_cast<double>(bmDuration.count()) / 1000 
+              << " seconds.\n";
 
     try {
         saveCanvas();
