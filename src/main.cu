@@ -1,10 +1,13 @@
 #include "scene.cuh"
 #include "util.cuh"
 #include <iostream>
+#include <chrono>
 
 #define CANVAS_PATH "out/canvas.ppm"
-#define CANVAS_WIDTH  600
-#define CANVAS_HEIGHT 600
+#define CANVAS_WIDTH  512
+#define CANVAS_HEIGHT 512
+
+using namespace std::chrono;
 
 /* Declarations */
 
@@ -17,11 +20,17 @@ void saveCanvas(Color *canvas);
 int main() {
     Color *canvas;
     Scene *scene;
+    SceneType sceneType = BOXA;
+
+    /* Increase memory limit for recursion */
+    size_t limit = 0;
+    cudaDeviceGetLimit(&limit, cudaLimitStackSize);
+    cudaDeviceSetLimit(cudaLimitStackSize, limit * 2);
 
     cudaMallocManaged(&canvas, CANVAS_WIDTH * CANVAS_HEIGHT * sizeof(Color));
     cudaMallocManaged(&scene, sizeof(Scene));
 
-    scene->initScene(TEAPOT);
+    scene->initScene(sceneType);
 
     cudaPrefetch(canvas, CANVAS_WIDTH * CANVAS_HEIGHT * sizeof(Color));
     cudaPrefetch(scene, sizeof(Scene));
@@ -31,8 +40,17 @@ int main() {
     dim3 blocks(CANVAS_WIDTH / tx + 1, CANVAS_HEIGHT / ty + 1);
     dim3 threads(tx, ty);
 
+    auto bmStart = high_resolution_clock::now();
+
     render<<<blocks, threads>>>(canvas, scene);
     cudaDeviceSynchronize();
+
+    auto bmStop = high_resolution_clock::now();
+    auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
+
+    std::cout << "Duration: " 
+              << static_cast<double>(bmDuration.count()) / 1000 
+              << " seconds.\n";
 
     try {
         saveCanvas(canvas);

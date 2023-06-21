@@ -6,3 +6,6 @@
 4. [Unified Memory for CUDA Beginners](https://developer.nvidia.com/blog/unified-memory-cuda-beginners/)
 5. [Accelerated Ray Tracing in One Weekend in CUDA](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/)
 6. [How to Implement Performance Metrics in CUDA C/C++](https://developer.nvidia.com/blog/how-implement-performance-metrics-cuda-cc/)
+7. [Teapot.obj](https://graphics.stanford.edu/courses/cs148-10-summer/as3/code/as3/teapot.obj)
+8. [Objects in OBJ format](https://www.prinmath.com/csci5229/OBJ/index.html)
+9. [Computer Graphics Archive](https://casual-effects.com/data)
