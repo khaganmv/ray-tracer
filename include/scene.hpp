@@ -36,6 +36,9 @@ struct Scene {
     static Scene teapot();
     static Scene suzanne();
     static Scene bunny();
+    static Scene serapis();
+    static Scene box();
+    static Scene boxa();
 };
 
 /* Definitions */
@@ -191,7 +194,7 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
                     vertices[i - 1], 
                     vertices[j - 1], 
                     vertices[k - 1], 
-                    {169, 169, 169}, 
+                    {160, 160, 160}, 
                     1, 
                     -1
                 }
@@ -208,9 +211,9 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
 Scene Scene::teapot() {
     Scene scene = {
         .viewport = {1, 1, 1}, 
-        .cameraPosition = {3, 2, -8}, 
-        .cameraRotation = {0, -20, 0}, 
-        .backgroundColor = {0, 0, 0}, 
+        .cameraPosition = {0, 2, -8}, 
+        .cameraRotation = {0, 0.1, 0}, 
+        .backgroundColor = {255, 255, 255}, 
         .triangles = parseOBJ("scenes/teapot.obj"), 
         .ambientLight = 0.2, 
         .pointLights = {}, 
@@ -229,16 +232,16 @@ Scene Scene::teapot() {
 Scene Scene::suzanne() {
     Scene scene = {
         .viewport = {1, 1, 1}, 
-        .cameraPosition = {-1, 0, 4}, 
-        .cameraRotation = {0, 165, 0}, 
-        .backgroundColor = {0, 0, 0}, 
+        .cameraPosition = {0, 0, 3.5}, 
+        .cameraRotation = {0, 180.1, 0}, 
+        .backgroundColor = {255, 255, 255}, 
         .triangles = parseOBJ("scenes/suzanne.obj"), 
         .ambientLight = 0.2, 
         .pointLights = {}, 
         .directionalLights = {
             {
                 0.5, 
-                {1, 0, 3}
+                {1, 0, 1}
             }
         }
     };
@@ -252,17 +255,147 @@ Scene Scene::bunny() {
         .viewport = {1, 1, 1}, 
         .cameraPosition = {-0.4, 1.25, 6}, 
         .cameraRotation = {0, 180, 0}, 
-        .backgroundColor = {0, 0, 0}, 
+        .backgroundColor = {255, 255, 255}, 
         .triangles = parseOBJ("scenes/bunny.obj"), 
         .ambientLight = 0.2, 
         .pointLights = {}, 
         .directionalLights = {
             {
                 0.5, 
-                {1, 0, 5}
+                {1, 0, 1}
             }
         }
     };
+    
+    return scene;
+}
+
+/* 88040 faces */
+Scene Scene::serapis() {
+    Scene scene = {
+        .viewport = {1, 1, 1}, 
+        .cameraPosition = {0, -3, -65}, 
+        .cameraRotation = {-30, 0, 0}, 
+        .backgroundColor = {255, 255, 255}, 
+        .triangles = parseOBJ("scenes/serapis.obj"), 
+        .ambientLight = 0.2, 
+        .pointLights = {}, 
+        .directionalLights = {
+            {
+                0.5, 
+                {0, 1, -1}
+            }
+        }
+    };
+
+    for (Triangle &triangle : scene.triangles) {
+        triangle.color = {255, 255, 255};
+        triangle.specularity = -1;
+    }
+
+    return scene;
+}
+
+/* 6330 faces */
+Scene Scene::box() {
+    Scene scene = {
+        .viewport = {1, 1, 1}, 
+        .cameraPosition = {0, 4, -10}, 
+        .cameraRotation = {0, 0.1, 0}, 
+        .backgroundColor = {255, 255, 255}, 
+        .triangles = parseOBJ("scenes/box.obj"), 
+        .ambientLight = 0.2, 
+        .pointLights = {}, 
+        .directionalLights = {
+            {
+                0.5, 
+                {0, 0, -1}
+            }
+        }
+    };
+
+    for (Triangle &triangle : scene.triangles) {
+        triangle.reflectivity = 0.2;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 10; 
+            i < scene.triangles.size() - 4; 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 255, 255};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 4; 
+            i < scene.triangles.size() - 2; 
+            i++
+        ) {
+        scene.triangles[i].color = {0, 255, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 2; 
+            i < scene.triangles.size(); 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 0, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    return scene;
+}
+
+/* 69640 faces */
+Scene Scene::boxa() {
+    Scene scene = {
+        .viewport = {1, 1, 1}, 
+        .cameraPosition = {-0.245, 2, 6}, 
+        .cameraRotation = {0, 180.1, 0}, 
+        .backgroundColor = {255, 255, 255}, 
+        .triangles = parseOBJ("scenes/boxa.obj"), 
+        .ambientLight = 0.2, 
+        .pointLights = {}, 
+        .directionalLights = {
+            {
+                0.5, 
+                {0, 0, 1}
+            }
+        }
+    };
+
+    for (Triangle &triangle : scene.triangles) {
+        triangle.reflectivity = 0.2;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 10; 
+            i < scene.triangles.size() - 4; 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 255, 255};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 4; 
+            i < scene.triangles.size() - 2; 
+            i++
+        ) {
+        scene.triangles[i].color = {0, 255, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 2; 
+            i < scene.triangles.size(); 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 0, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
 
     return scene;
 }

@@ -4,8 +4,8 @@
 #include <chrono>
 
 #define CANVAS_PATH "out/canvas.ppm"
-#define CANVAS_WIDTH  600
-#define CANVAS_HEIGHT 600
+#define CANVAS_WIDTH  512
+#define CANVAS_HEIGHT 512
 
 using std::thread;
 using namespace std::chrono;
@@ -24,7 +24,7 @@ int main() {
     Scene scene;
 
     try {
-        scene = Scene::teapot();
+        scene = Scene::boxa();
     } catch (const char *e) {
         std::cerr << e;
         return -1;
