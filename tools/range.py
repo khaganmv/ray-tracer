@@ -1,4 +1,4 @@
-p1 = "scenes/boxa.obj"
+p1 = "scenes/boxserapis.obj"
 f1 = open(p1, "r")
 d = f1.readlines()
 

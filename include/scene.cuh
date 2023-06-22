@@ -12,8 +12,10 @@ enum SceneType {
     SUZANNE, 
     BUNNY, 
     SERAPIS, 
-    BOX, 
-    BOXA
+    BOXTEAPOT, 
+    BOXSUZANNE, 
+    BOXBUNNY, 
+    BOXSERAPIS
 };
 
 struct Scene {
@@ -33,8 +35,10 @@ struct Scene {
     void initSceneSuzanne();
     void initSceneBunny();
     void initSceneSerapis();
-    void initSceneBox();
-    void initSceneBoxA();
+    void initSceneBoxTeapot();
+    void initSceneBoxSuzanne();
+    void initSceneBoxBunny();
+    void initSceneBoxSerapis();
 
     vector<Triangle> parseOBJ(string OBJPath);
     __device__ 
@@ -67,12 +71,14 @@ void Scene::initScene(SceneType sceneType) {
     string OBJPath;
 
     switch (sceneType) {
-        case TEAPOT:        { OBJPath = "scenes/teapot.obj";  break; }
-        case SUZANNE:       { OBJPath = "scenes/suzanne.obj"; break; }
-        case BUNNY:         { OBJPath = "scenes/bunny.obj";   break; }
-        case SERAPIS:       { OBJPath = "scenes/serapis.obj"; break; }
-        case BOX:           { OBJPath = "scenes/box.obj";     break; }
-        case BOXA:          { OBJPath = "scenes/boxa.obj";    break; }
+        case TEAPOT:        { OBJPath = "scenes/teapot.obj";     break; }
+        case SUZANNE:       { OBJPath = "scenes/suzanne.obj";    break; }
+        case BUNNY:         { OBJPath = "scenes/bunny.obj";      break; }
+        case SERAPIS:       { OBJPath = "scenes/serapis.obj";    break; }
+        case BOXTEAPOT:     { OBJPath = "scenes/boxteapot.obj";  break; }
+        case BOXSUZANNE:    { OBJPath = "scenes/boxsuzanne.obj"; break; }
+        case BOXBUNNY:      { OBJPath = "scenes/boxbunny.obj";   break; }
+        case BOXSERAPIS:    { OBJPath = "scenes/boxserapis.obj"; break; }
     }
 
     vector<Triangle> faces = parseOBJ(OBJPath);
@@ -94,20 +100,24 @@ void Scene::initScene(SceneType sceneType) {
         case SUZANNE:       { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
         case BUNNY:         { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
         case SERAPIS:       { directionalLights[0] = { 0.5, { 0, 1, -1} }; break; }
-        case BOX:           { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
-        case BOXA:          { directionalLights[0] = { 0.5, { 0, 0,  1} }; break; }
+        case BOXTEAPOT:     { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
+        case BOXSUZANNE:    { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
+        case BOXBUNNY:      { directionalLights[0] = { 0.5, { 0, 0,  1} }; break; }
+        case BOXSERAPIS:    { directionalLights[0] = { 0.5, { 0, 1, -1} }; break; }
     }
 
     cudaPrefetch(triangles, trianglesSize * sizeof(Triangle));
     cudaPrefetch(directionalLights, directionalLightsSize * sizeof(Directional));
 
     switch (sceneType) { 
-        case TEAPOT:        { initSceneTeapot();  break; }
-        case SUZANNE:       { initSceneSuzanne(); break; }
-        case BUNNY:         { initSceneBunny();   break; }
-        case SERAPIS:       { initSceneSerapis(); break; }
-        case BOX:           { initSceneBox();     break; }
-        case BOXA:          { initSceneBoxA();    break; }
+        case TEAPOT:        { initSceneTeapot();     break; }
+        case SUZANNE:       { initSceneSuzanne();    break; }
+        case BUNNY:         { initSceneBunny();      break; }
+        case SERAPIS:       { initSceneSerapis();    break; }
+        case BOXTEAPOT:     { initSceneBoxTeapot();  break; }
+        case BOXSUZANNE:    { initSceneBoxSuzanne(); break; }
+        case BOXBUNNY:      { initSceneBoxBunny();   break; }
+        case BOXSERAPIS:    { initSceneBoxSerapis(); break; }
     }
 }
 
@@ -161,7 +171,7 @@ void Scene::initSceneSerapis() {
 }
 
 /* 6330 faces */
-void Scene::initSceneBox() {
+void Scene::initSceneBoxTeapot() {
     viewport = {1, 1, 1};
     cameraPosition = {0, 4, -10};
     cameraRotation = {0, 0.1, 0};
@@ -190,8 +200,38 @@ void Scene::initSceneBox() {
     }
 }
 
+/* 15498 faces */
+void Scene::initSceneBoxSuzanne() {
+    viewport = {1, 1, 1};
+    cameraPosition = {0, 1, -4.9};
+    cameraRotation = {0, 0.1, 0};
+    backgroundColor = {255, 255, 255};
+    ambientLight = 0.2;
+    pointLights = NULL;
+    pointLightsSize = 0;
+
+    for (size_t i = 0; i < trianglesSize; i++) {
+        triangles[i].reflectivity = 0.2;
+    }
+
+    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
+        triangles[i].color = {255, 255, 255};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
+        triangles[i].color = {0, 255, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
+        triangles[i].color = {255, 0, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+}
+
 /* 69640 faces */
-void Scene::initSceneBoxA() {
+void Scene::initSceneBoxBunny() {
     viewport = {1, 1, 1};
     cameraPosition = {-0.245, 2, 6};
     cameraRotation = {0, 180.1, 0};
@@ -201,6 +241,37 @@ void Scene::initSceneBoxA() {
     pointLightsSize = 0;
 
     for (size_t i = 0; i < trianglesSize; i++) {
+        triangles[i].reflectivity = 0.2;
+    }
+
+    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
+        triangles[i].color = {255, 255, 255};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
+        triangles[i].color = {0, 255, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
+        triangles[i].color = {255, 0, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+}
+
+/* 88050 faces */
+void Scene::initSceneBoxSerapis() {
+    viewport = {1, 1, 1};
+    cameraPosition = {0, 32.5, -85};
+    cameraRotation = {0, 0.1, 0};
+    backgroundColor = {255, 255, 255};
+    ambientLight = 0.2;
+    pointLights = NULL;
+    pointLightsSize = 0;
+
+    for (size_t i = 0; i < trianglesSize - 10; i++) {
+        triangles[i].color = {255, 255, 255};
         triangles[i].reflectivity = 0.2;
     }
 

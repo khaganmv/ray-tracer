@@ -20,7 +20,7 @@ void saveCanvas(Color *canvas);
 int main() {
     Color *canvas;
     Scene *scene;
-    SceneType sceneType = BOXA;
+    SceneType sceneType = BOXSERAPIS;
 
     /* Increase memory limit for recursion */
     size_t limit = 0;
