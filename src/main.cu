@@ -20,12 +20,12 @@ void saveCanvas(Color *canvas);
 int main() {
     Color *canvas;
     Scene *scene;
-    SceneType sceneType = BOXSERAPIS;
+    SceneType sceneType = BOXBUNNY;
 
     /* Increase memory limit for recursion */
     size_t limit = 0;
     cudaDeviceGetLimit(&limit, cudaLimitStackSize);
-    cudaDeviceSetLimit(cudaLimitStackSize, limit * 2);
+    cudaDeviceSetLimit(cudaLimitStackSize, limit * 32);
 
     cudaMallocManaged(&canvas, CANVAS_WIDTH * CANVAS_HEIGHT * sizeof(Color));
     cudaMallocManaged(&scene, sizeof(Scene));
@@ -62,6 +62,8 @@ int main() {
     cudaFree(canvas);
     cudaFree(scene->triangles);
     cudaFree(scene->directionalLights);
+    cudaFree(scene->bvh.indices);
+    cudaFree(scene->bvh.nodes);
     cudaFree(scene);
 
     return 0;

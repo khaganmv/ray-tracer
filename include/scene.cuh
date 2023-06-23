@@ -4,6 +4,7 @@
 #include "common.cuh"
 #include "triangle.cuh"
 #include "light.cuh"
+#include "bvh.cuh"
 
 /* Declarations */
 
@@ -29,6 +30,32 @@ struct Scene {
     size_t pointLightsSize;
     Directional *directionalLights;
     size_t directionalLightsSize;
+    BVH bvh;
+
+    Scene() = default;
+    Scene(
+        Vector3 _viewport, 
+        Vector3 _cameraPosition, Vector3 _cameraRotation, 
+        Color _backgroundColor, 
+        Triangle *_triangles,
+        size_t _trianglesSize,  
+        double _ambientLight, 
+        Point *_pointLights, 
+        size_t _pointLightsSize, 
+        Directional *_directionalLights, 
+        size_t _directionalLightsSize 
+    ) : viewport(_viewport), 
+        cameraPosition(_cameraPosition), cameraRotation(_cameraRotation), 
+        backgroundColor(_backgroundColor), 
+        triangles(_triangles), 
+        trianglesSize(_trianglesSize), 
+        ambientLight(_ambientLight), 
+        pointLights(_pointLights), 
+        pointLightsSize(_pointLightsSize),
+        directionalLights(_directionalLights), 
+        directionalLightsSize(_directionalLightsSize) {
+        bvh = BVH(triangles, trianglesSize);
+    }
 
     void initScene(SceneType sceneType);
     void initSceneTeapot();
@@ -58,11 +85,6 @@ struct Scene {
     );
     __device__ 
     Vector3 reflectRay(Vector3 ray, Vector3 normal);
-    __device__ 
-    bool closestIntersection(
-        double *closestT, int *closestTriangleIndex, 
-        Vector3 origin, Vector3 ray, double tMin, double tMax
-    );
 };
 
 /* Definitions */
@@ -71,14 +93,14 @@ void Scene::initScene(SceneType sceneType) {
     string OBJPath;
 
     switch (sceneType) {
-        case TEAPOT:        { OBJPath = "scenes/teapot.obj";     break; }
-        case SUZANNE:       { OBJPath = "scenes/suzanne.obj";    break; }
-        case BUNNY:         { OBJPath = "scenes/bunny.obj";      break; }
-        case SERAPIS:       { OBJPath = "scenes/serapis.obj";    break; }
-        case BOXTEAPOT:     { OBJPath = "scenes/boxteapot.obj";  break; }
-        case BOXSUZANNE:    { OBJPath = "scenes/boxsuzanne.obj"; break; }
-        case BOXBUNNY:      { OBJPath = "scenes/boxbunny.obj";   break; }
-        case BOXSERAPIS:    { OBJPath = "scenes/boxserapis.obj"; break; }
+        case TEAPOT:     { OBJPath = "scenes/teapot.obj";     break; }
+        case SUZANNE:    { OBJPath = "scenes/suzanne.obj";    break; }
+        case BUNNY:      { OBJPath = "scenes/bunny.obj";      break; }
+        case SERAPIS:    { OBJPath = "scenes/serapis.obj";    break; }
+        case BOXTEAPOT:  { OBJPath = "scenes/boxteapot.obj";  break; }
+        case BOXSUZANNE: { OBJPath = "scenes/boxsuzanne.obj"; break; }
+        case BOXBUNNY:   { OBJPath = "scenes/boxbunny.obj";   break; }
+        case BOXSERAPIS: { OBJPath = "scenes/boxserapis.obj"; break; }
     }
 
     vector<Triangle> faces = parseOBJ(OBJPath);
@@ -89,6 +111,8 @@ void Scene::initScene(SceneType sceneType) {
         triangles[i] = faces[i];
     }
 
+    bvh = BVH(triangles, trianglesSize);
+
     directionalLightsSize = 1;
     cudaMallocManaged(
         &directionalLights, 
@@ -96,28 +120,28 @@ void Scene::initScene(SceneType sceneType) {
     );
 
     switch (sceneType) {
-        case TEAPOT:        { directionalLights[0] = { 0.5, {-1, 0, -1} }; break; }
-        case SUZANNE:       { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
-        case BUNNY:         { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
-        case SERAPIS:       { directionalLights[0] = { 0.5, { 0, 1, -1} }; break; }
-        case BOXTEAPOT:     { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
-        case BOXSUZANNE:    { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
-        case BOXBUNNY:      { directionalLights[0] = { 0.5, { 0, 0,  1} }; break; }
-        case BOXSERAPIS:    { directionalLights[0] = { 0.5, { 0, 1, -1} }; break; }
+        case TEAPOT:     { directionalLights[0] = { 0.5, {-1, 0, -1} }; break; }
+        case SUZANNE:    { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
+        case BUNNY:      { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
+        case SERAPIS:    { directionalLights[0] = { 0.5, { 0, 1, -1} }; break; }
+        case BOXTEAPOT:  { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
+        case BOXSUZANNE: { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
+        case BOXBUNNY:   { directionalLights[0] = { 0.5, { 0, 0,  1} }; break; }
+        case BOXSERAPIS: { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
     }
 
     cudaPrefetch(triangles, trianglesSize * sizeof(Triangle));
     cudaPrefetch(directionalLights, directionalLightsSize * sizeof(Directional));
 
     switch (sceneType) { 
-        case TEAPOT:        { initSceneTeapot();     break; }
-        case SUZANNE:       { initSceneSuzanne();    break; }
-        case BUNNY:         { initSceneBunny();      break; }
-        case SERAPIS:       { initSceneSerapis();    break; }
-        case BOXTEAPOT:     { initSceneBoxTeapot();  break; }
-        case BOXSUZANNE:    { initSceneBoxSuzanne(); break; }
-        case BOXBUNNY:      { initSceneBoxBunny();   break; }
-        case BOXSERAPIS:    { initSceneBoxSerapis(); break; }
+        case TEAPOT:     { initSceneTeapot();     break; }
+        case SUZANNE:    { initSceneSuzanne();    break; }
+        case BUNNY:      { initSceneBunny();      break; }
+        case SERAPIS:    { initSceneSerapis();    break; }
+        case BOXTEAPOT:  { initSceneBoxTeapot();  break; }
+        case BOXSUZANNE: { initSceneBoxSuzanne(); break; }
+        case BOXBUNNY:   { initSceneBoxBunny();   break; }
+        case BOXSERAPIS: { initSceneBoxSerapis(); break; }
     }
 }
 
@@ -203,7 +227,7 @@ void Scene::initSceneBoxTeapot() {
 /* 15498 faces */
 void Scene::initSceneBoxSuzanne() {
     viewport = {1, 1, 1};
-    cameraPosition = {0, 1, -4.9};
+    cameraPosition = {0, 1, -5};
     cameraRotation = {0, 0.1, 0};
     backgroundColor = {255, 255, 255};
     ambientLight = 0.2;
@@ -233,7 +257,7 @@ void Scene::initSceneBoxSuzanne() {
 /* 69640 faces */
 void Scene::initSceneBoxBunny() {
     viewport = {1, 1, 1};
-    cameraPosition = {-0.245, 2, 6};
+    cameraPosition = {-0.4, 2, 6.5};
     cameraRotation = {0, 180.1, 0};
     backgroundColor = {255, 255, 255};
     ambientLight = 0.2;
@@ -250,12 +274,12 @@ void Scene::initSceneBoxBunny() {
     }
 
     for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
-        triangles[i].color = {0, 255, 0};
+        triangles[i].color = {255, 0, 0};
         triangles[i].reflectivity = 0.4;
     }
 
     for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
-        triangles[i].color = {255, 0, 0};
+        triangles[i].color = {0, 255, 0};
         triangles[i].reflectivity = 0.4;
     }
 }
@@ -263,7 +287,7 @@ void Scene::initSceneBoxBunny() {
 /* 88050 faces */
 void Scene::initSceneBoxSerapis() {
     viewport = {1, 1, 1};
-    cameraPosition = {0, 32.5, -85};
+    cameraPosition = {-0.1, 44, -115};
     cameraRotation = {0, 0.1, 0};
     backgroundColor = {255, 255, 255};
     ambientLight = 0.2;
@@ -347,7 +371,7 @@ Color Scene::traceRay(
     double closestT;
     int closestTriangleIndex;
 
-    if (!closestIntersection(&closestT, &closestTriangleIndex, origin, ray, tMin, tMax)) {
+    if (!bvh.intersectRay(&closestT, &closestTriangleIndex, origin, ray, tMin, tMax, 0)) {
         return backgroundColor;
     }
 
@@ -406,7 +430,7 @@ double Scene::computeLighting(
     int closestTriangleIndex;
 
     /* Shadow check */
-    if (closestIntersection(&closestT, &closestTriangleIndex, point, light, 0.001, tMax)) {
+    if (bvh.intersectRay(&closestT, &closestTriangleIndex, point, light, 0.001, tMax, 0)) {
         return totalIntensity;
     }
 
@@ -433,30 +457,6 @@ double Scene::computeLighting(
 __device__ 
 Vector3 Scene::reflectRay(Vector3 ray, Vector3 normal) {
     return 2 * normal * normal.dot(ray) - ray;
-}
-
-__device__ 
-bool Scene::closestIntersection(
-    double *closestT, int *closestTriangleIndex, 
-    Vector3 origin, Vector3 ray, double tMin, double tMax
-) {
-    bool intersectsAny = false;
-    *closestT = INFINITY;
-    *closestTriangleIndex = -1;
-
-    for (size_t i = 0; i < trianglesSize; i++) {
-        double t;
-
-        if (triangles[i].intersectRay(&t, origin, ray)) {
-            if (t > tMin && t < tMax && t < *closestT) {
-                intersectsAny = true;
-                *closestT = t;
-                *closestTriangleIndex = static_cast<int>(i);
-            }
-        }
-    }
-
-    return intersectsAny;
 }
 
 #endif // SCENE_CUH

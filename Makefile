@@ -7,7 +7,7 @@ BIN = out/main
 all: $(BIN)
 
 $(BIN): $(SRCDIR)
-	nvcc $^ -o $@ -I$(INCLUDEDIR) -O3
+	nvcc $^ -o $@ -I$(INCLUDEDIR) -O3 -Xcudafe --diag_suppress=20012
 
 run: all
 	./$(BIN)

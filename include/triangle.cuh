@@ -11,6 +11,7 @@ struct Triangle {
     Vector3 normal;
     int specularity;
     double reflectivity;
+    Vector3 centroid;
 
     __host__ __device__ 
     Triangle(
@@ -21,6 +22,7 @@ struct Triangle {
         Vector3 e01 = v1 - v0;
         Vector3 e02 = v2 - v0;
         normal = e01.cross(e02).normalize();
+        centroid = (v0 + v1 + v2) / 3;
     }
 
     __device__ 

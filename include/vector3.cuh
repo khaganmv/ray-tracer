@@ -10,9 +10,9 @@
 struct Vector3 {
     double x, y, z;
 
-    __device__ 
+    __host__ __device__ 
     Vector3() = default;
-    __device__ 
+    __host__ __device__ 
     Vector3(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
     
     __host__ __device__ 
@@ -32,11 +32,18 @@ struct Vector3 {
     __host__ __device__ 
     Vector3 normalize();
 
+    __host__ __device__ 
+    Vector3 min(Vector3 that);
+    __host__ __device__ 
+    Vector3 max(Vector3 that);
+
     __device__ 
     Vector3 operator-();
+    __host__ __device__ 
+    double operator[](size_t index);
 };
 
-__device__ 
+__host__ __device__ 
 Vector3 operator+(Vector3 lhs, Vector3 rhs);
 __host__ __device__ 
 Vector3 operator-(Vector3 lhs, Vector3 rhs);
@@ -107,12 +114,41 @@ Vector3 Vector3::normalize() {
     return *this / this->magnitude();
 }
 
+__host__ __device__ 
+Vector3 Vector3::min(Vector3 that) {
+    return {
+        (x < that.x) ? x : that.x, 
+        (y < that.y) ? y : that.y, 
+        (z < that.z) ? z : that.z
+    };
+}
+
+__host__ __device__ 
+Vector3 Vector3::max(Vector3 that) {
+    return {
+        (x > that.x) ? x : that.x, 
+        (y > that.y) ? y : that.y, 
+        (z > that.z) ? z : that.z
+    };
+}
+
 __device__ 
 Vector3 Vector3::operator-() {
     return *this * -1;
 }
 
-__device__ 
+__host__ __device__ 
+double Vector3::operator[](size_t index) {
+    if (index == 0) {
+        return x;
+    } else if (index == 1) {
+        return y;
+    } else {
+        return z;
+    }
+}
+
+__host__ __device__ 
 Vector3 operator+(Vector3 lhs, Vector3 rhs) {
     return {
         lhs.x + rhs.x, 
