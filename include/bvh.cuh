@@ -6,6 +6,19 @@
 
 /* Declarations */
 
+struct AABB {
+    Vector3 bMin, bMax;
+
+    __host__ 
+    AABB() : bMin(Vector3(INFINITY, INFINITY, INFINITY)), 
+             bMax(Vector3(-INFINITY, -INFINITY, -INFINITY)) {}
+
+    __host__ 
+    void grow(Vector3 p);
+    __host__ 
+    double area();
+};
+
 struct BVHNode {
     Vector3 AABBMin, AABBMax;
     size_t triangleFirst, triangleCount;
@@ -42,9 +55,24 @@ struct BVH {
         Vector3 bMin, Vector3 bMax, 
         double tMax
     );
+    double evaluateSAH(size_t index, int axis, double pos);
 };
 
 /* Definitions */
+
+__host__ 
+void AABB::grow(Vector3 p) {
+    bMin = bMin.min(p);
+    bMax = bMax.max(p);
+}
+
+__host__ 
+double AABB::area() {
+    Vector3 extent = bMax - bMin;
+    
+    // *2 test
+    return extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
+}
 
 __host__ 
 BVH::BVH(Triangle *_triangles, size_t _trianglesSize) {
@@ -89,22 +117,34 @@ __host__
 void BVH::subdivide(size_t index) {
     BVHNode &node = nodes[index];
 
-    if (node.triangleCount <= 2) {
+    Vector3 extent = node.AABBMax - node.AABBMin;
+    double parentArea = extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
+    double parentCost = node.triangleCount * parentArea;
+
+    int bestAxis = -1;
+    double bestPos = 0;
+    double bestCost = INFINITY;
+
+    for (int axis = 0; axis < 3; axis++) {
+        for (size_t i = 0; i < node.triangleCount; i++) {
+            Triangle &triangle = triangles[indices[node.triangleFirst + i]];
+            double candidatePos = triangle.centroid[axis];
+            double cost = evaluateSAH(index, axis, candidatePos);
+
+            if (cost < bestCost) {
+                bestPos = candidatePos;
+                bestAxis = axis;
+                bestCost = cost;
+            }
+        }
+    }
+
+    if (bestCost >= parentCost) {
         return;
     }
 
-    Vector3 extent = node.AABBMax - node.AABBMin;
-    int axis = 0;
-
-    if (extent.y > extent.x) {
-        axis = 1;
-    }
-
-    if (extent.z > extent[axis]) {
-        axis = 2;
-    }
-
-    double split = node.AABBMin[axis] + extent[axis] / 2;
+    int axis = bestAxis;
+    double split = bestPos;
 
     int i = static_cast<int>(node.triangleFirst);
     int j = static_cast<int>(i + node.triangleCount - 1);
@@ -225,6 +265,32 @@ bool BVH::intersectRayAABB(
     tMax = min(tMax, max(tz1, tz2));
 
     return tMin < tLim && tMax > 0 && tMax >= tMin;
+}
+
+double BVH::evaluateSAH(size_t index, int axis, double pos) {
+    BVHNode &node = nodes[index];
+    AABB leftBox, rightBox;
+    int leftCount = 0, rightCount = 0;
+
+    for (size_t i = 0; i < node.triangleCount; i++) {
+        Triangle &triangle = triangles[indices[node.triangleFirst + i]];
+
+        if (triangle.centroid[axis] < pos) {
+            leftCount++;
+            leftBox.grow(triangle.v0);
+            leftBox.grow(triangle.v1);
+            leftBox.grow(triangle.v2);
+        } else {
+            rightCount++;
+            rightBox.grow(triangle.v0);
+            rightBox.grow(triangle.v1);
+            rightBox.grow(triangle.v2);
+        }
+    }
+
+    double cost = leftCount * leftBox.area() + rightCount * rightBox.area();
+
+    return (cost > 0) ? cost : INFINITY;
 }
 
 #endif // BVH_CUH

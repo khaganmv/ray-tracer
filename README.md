@@ -10,3 +10,4 @@
 8. [Objects in OBJ format](https://www.prinmath.com/csci5229/OBJ/index.html)
 9. [Computer Graphics Archive](https://casual-effects.com/data)
 10. [How to build a BVH – Part 1: Basics](https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/)
+11. [How to build a BVH – part 2: Faster Rays](https://jacco.ompf2.com/2022/04/18/how-to-build-a-bvh-part-2-faster-rays/)
