@@ -23,7 +23,11 @@ struct Vector3 {
     double magnitude();
     Vector3 normalize();
 
+    Vector3 min(Vector3 that);
+    Vector3 max(Vector3 that);
+
     Vector3 operator-();
+    double operator[](size_t index);
 };
 
 Vector3 operator+(Vector3 lhs, Vector3 rhs);
@@ -85,8 +89,34 @@ Vector3 Vector3::normalize() {
     return *this / this->magnitude();
 }
 
+Vector3 Vector3::min(Vector3 that) {
+    return {
+        (x < that.x) ? x : that.x, 
+        (y < that.y) ? y : that.y, 
+        (z < that.z) ? z : that.z
+    };
+}
+
+Vector3 Vector3::max(Vector3 that) {
+    return {
+        (x > that.x) ? x : that.x, 
+        (y > that.y) ? y : that.y, 
+        (z > that.z) ? z : that.z
+    };
+}
+
 Vector3 Vector3::operator-() {
     return *this * -1;
+}
+
+double Vector3::operator[](size_t index) {
+    if (index == 0) {
+        return x;
+    } else if (index == 1) {
+        return y;
+    } else {
+        return z;
+    }
 }
 
 Vector3 operator+(Vector3 lhs, Vector3 rhs) {

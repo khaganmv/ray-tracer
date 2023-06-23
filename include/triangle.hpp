@@ -11,6 +11,7 @@ struct Triangle {
     Vector3 normal;
     int specularity;
     double reflectivity;
+    Vector3 centroid;
 
     Triangle(
         Vector3 _v0, Vector3 _v1, Vector3 _v2, 
@@ -20,6 +21,7 @@ struct Triangle {
         Vector3 e01 = v1 - v0;
         Vector3 e02 = v2 - v0;
         normal = e01.cross(e02).normalize();
+        centroid = (v0 + v1 + v2) / 3;
     }
 
     tuple<bool, double> intersectRay(Vector3 origin, Vector3 ray);

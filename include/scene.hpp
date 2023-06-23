@@ -4,6 +4,7 @@
 #include "common.hpp"
 #include "triangle.hpp"
 #include "light.hpp"
+#include "bvh.hpp"
 
 /* Declarations */
 
@@ -15,6 +16,26 @@ struct Scene {
     double ambientLight;
     vector<Point> pointLights;
     vector<Directional> directionalLights;
+    BVH bvh;
+
+    Scene() = default;
+    Scene(
+        Vector3 _viewport, 
+        Vector3 _cameraPosition, Vector3 _cameraRotation, 
+        Color _backgroundColor, 
+        vector<Triangle> _triangles, 
+        double _ambientLight, 
+        vector<Point> _pointLights, 
+        vector<Directional> _directionalLights
+    ) : viewport(_viewport), 
+        cameraPosition(_cameraPosition), cameraRotation(_cameraRotation), 
+        backgroundColor(_backgroundColor), 
+        triangles(_triangles), 
+        ambientLight(_ambientLight), 
+        pointLights(_pointLights), 
+        directionalLights(_directionalLights) {
+        bvh = BVH(triangles);
+    }
 
     Vector3 toViewport(int x, int y, int canvasWidth, int canvasHeight);
     Color traceRay(
@@ -54,7 +75,7 @@ Vector3 Scene::toViewport(int x, int y, int canvasWidth, int canvasHeight) {
 Color Scene::traceRay(
     Vector3 origin, Vector3 ray, double tMin, double tMax, int recursionDepth
 ) {
-    tuple<bool, double, int> intersection = closestIntersection(origin, ray, tMin, tMax);
+    tuple<bool, double, int> intersection = bvh.intersectRay(origin, ray, tMin, tMax, 0);
     bool intersectsAny = std::get<0>(intersection);
     double closestT = std::get<1>(intersection);
     int closestTriangleIndex = std::get<2>(intersection);
@@ -112,7 +133,7 @@ double Scene::computeLighting(
     double totalIntensity = 0.0;
 
     /* Shadow check */
-    tuple<bool, double, int> intersection = closestIntersection(point, light, 0.001, tMax);
+    tuple<bool, double, int> intersection = bvh.intersectRay(point, light, 0.001, tMax, 0);
     bool intersectsAny = std::get<0>(intersection);
 
     if (intersectsAny) {
@@ -210,14 +231,14 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
 /* 6320 faces */
 Scene Scene::teapot() {
     Scene scene = {
-        .viewport = {1, 1, 1}, 
-        .cameraPosition = {0, 2, -8}, 
-        .cameraRotation = {0, 0.1, 0}, 
-        .backgroundColor = {255, 255, 255}, 
-        .triangles = parseOBJ("scenes/teapot.obj"), 
-        .ambientLight = 0.2, 
-        .pointLights = {}, 
-        .directionalLights = {
+        {1, 1, 1}, 
+        {0, 2, -8}, 
+        {0, 0.1, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/teapot.obj"), 
+        0.2, 
+        {}, 
+        {
             {
                 0.5, 
                 {-1, 0, -1}
@@ -230,21 +251,21 @@ Scene Scene::teapot() {
 
 /* 15488 faces */
 Scene Scene::suzanne() {
-    Scene scene = {
-        .viewport = {1, 1, 1}, 
-        .cameraPosition = {0, 0, 3.5}, 
-        .cameraRotation = {0, 180.1, 0}, 
-        .backgroundColor = {255, 255, 255}, 
-        .triangles = parseOBJ("scenes/suzanne.obj"), 
-        .ambientLight = 0.2, 
-        .pointLights = {}, 
-        .directionalLights = {
+    Scene scene(
+        {1, 1, 1}, 
+        {0, 0, 3.5}, 
+        {0, 180.1, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/suzanne.obj"), 
+        0.2, 
+        {}, 
+        {
             {
                 0.5, 
                 {1, 0, 1}
             }
         }
-    };
+    );
 
     return scene;
 }
@@ -252,14 +273,14 @@ Scene Scene::suzanne() {
 /* 69630 faces */
 Scene Scene::bunny() {
     Scene scene = {
-        .viewport = {1, 1, 1}, 
-        .cameraPosition = {-0.4, 1.25, 6}, 
-        .cameraRotation = {0, 180, 0}, 
-        .backgroundColor = {255, 255, 255}, 
-        .triangles = parseOBJ("scenes/bunny.obj"), 
-        .ambientLight = 0.2, 
-        .pointLights = {}, 
-        .directionalLights = {
+        {1, 1, 1}, 
+        {-0.4, 1.25, 6}, 
+        {0, 180, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/bunny.obj"), 
+        0.2, 
+        {}, 
+        {
             {
                 0.5, 
                 {1, 0, 1}
@@ -273,14 +294,14 @@ Scene Scene::bunny() {
 /* 88040 faces */
 Scene Scene::serapis() {
     Scene scene = {
-        .viewport = {1, 1, 1}, 
-        .cameraPosition = {0, -3, -65}, 
-        .cameraRotation = {-30, 0, 0}, 
-        .backgroundColor = {255, 255, 255}, 
-        .triangles = parseOBJ("scenes/serapis.obj"), 
-        .ambientLight = 0.2, 
-        .pointLights = {}, 
-        .directionalLights = {
+        {1, 1, 1}, 
+        {0, -3, -65}, 
+        {-30, 0, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/serapis.obj"), 
+        0.2, 
+        {}, 
+        {
             {
                 0.5, 
                 {0, 1, -1}
@@ -299,14 +320,14 @@ Scene Scene::serapis() {
 /* 6330 faces */
 Scene Scene::box() {
     Scene scene = {
-        .viewport = {1, 1, 1}, 
-        .cameraPosition = {0, 4, -10}, 
-        .cameraRotation = {0, 0.1, 0}, 
-        .backgroundColor = {255, 255, 255}, 
-        .triangles = parseOBJ("scenes/box.obj"), 
-        .ambientLight = 0.2, 
-        .pointLights = {}, 
-        .directionalLights = {
+        {1, 1, 1}, 
+        {0, 4, -10}, 
+        {0, 0.1, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/boxteapot.obj"), 
+        0.2, 
+        {}, 
+        {
             {
                 0.5, 
                 {0, 0, -1}
@@ -351,14 +372,14 @@ Scene Scene::box() {
 /* 69640 faces */
 Scene Scene::boxa() {
     Scene scene = {
-        .viewport = {1, 1, 1}, 
-        .cameraPosition = {-0.245, 2, 6}, 
-        .cameraRotation = {0, 180.1, 0}, 
-        .backgroundColor = {255, 255, 255}, 
-        .triangles = parseOBJ("scenes/boxa.obj"), 
-        .ambientLight = 0.2, 
-        .pointLights = {}, 
-        .directionalLights = {
+        {1, 1, 1}, 
+        {-0.245, 2, 6}, 
+        {0, 180.1, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/boxa.obj"), 
+        0.2, 
+        {}, 
+        {
             {
                 0.5, 
                 {0, 0, 1}

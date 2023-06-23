@@ -24,7 +24,7 @@ int main() {
     Scene scene;
 
     try {
-        scene = Scene::boxa();
+        scene = Scene::serapis();
     } catch (const char *e) {
         std::cerr << e;
         return -1;
