@@ -58,8 +58,10 @@ struct Scene {
     static Scene suzanne();
     static Scene bunny();
     static Scene serapis();
-    static Scene box();
-    static Scene boxa();
+    static Scene boxteapot();
+    static Scene boxsuzanne();
+    static Scene boxbunny();
+    static Scene boxserapis();
 };
 
 /* Definitions */
@@ -162,30 +164,6 @@ double Scene::computeLighting(
 
 Vector3 Scene::reflectRay(Vector3 ray, Vector3 normal) {
     return 2 * normal * normal.dot(ray) - ray;
-}
-
-tuple<bool, double, int> Scene::closestIntersection(
-    Vector3 origin, Vector3 ray, double tMin, double tMax
-) {
-    bool intersectsAny = false;
-    double closestT = INFINITY;
-    int closestTriangleIndex = -1;
-
-    for (size_t i = 0; i < this->triangles.size(); i++) {
-        tuple<bool, double> intersection = triangles[i].intersectRay(origin, ray);
-        bool intersects = std::get<0>(intersection);
-        double t = std::get<1>(intersection);
-
-        if (intersects) {
-            if (t > tMin && t < tMax && t < closestT) {
-                intersectsAny = true;
-                closestT = t;
-                closestTriangleIndex = static_cast<int>(i);
-            }
-        }
-    }
-
-    return { intersectsAny, closestT, closestTriangleIndex };
 }
 
 vector<Triangle> Scene::parseOBJ(string OBJPath) {
@@ -318,7 +296,7 @@ Scene Scene::serapis() {
 }
 
 /* 6330 faces */
-Scene Scene::box() {
+Scene Scene::boxteapot() {
     Scene scene = {
         {1, 1, 1}, 
         {0, 4, -10}, 
@@ -369,14 +347,66 @@ Scene Scene::box() {
     return scene;
 }
 
+/* 15498 faces */
+Scene Scene::boxsuzanne() {
+    Scene scene = {
+        {1, 1, 1}, 
+        {0, 1, -5}, 
+        {0, 0.1, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/boxsuzanne.obj"), 
+        0.2, 
+        {}, 
+        {
+            {
+                0.5, 
+                {0, 0, -1}
+            }
+        }
+    };
+
+    for (Triangle &triangle : scene.triangles) {
+        triangle.reflectivity = 0.2;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 10; 
+            i < scene.triangles.size() - 4; 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 255, 255};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 4; 
+            i < scene.triangles.size() - 2; 
+            i++
+        ) {
+        scene.triangles[i].color = {0, 255, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 2; 
+            i < scene.triangles.size(); 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 0, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    return scene;
+}
+
 /* 69640 faces */
-Scene Scene::boxa() {
+Scene Scene::boxbunny() {
     Scene scene = {
         {1, 1, 1}, 
         {-0.245, 2, 6}, 
         {0, 180.1, 0}, 
         {255, 255, 255}, 
-        parseOBJ("scenes/boxa.obj"), 
+        parseOBJ("scenes/boxbunny.obj"), 
         0.2, 
         {}, 
         {
@@ -388,6 +418,59 @@ Scene Scene::boxa() {
     };
 
     for (Triangle &triangle : scene.triangles) {
+        triangle.reflectivity = 0.2;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 10; 
+            i < scene.triangles.size() - 4; 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 255, 255};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 4; 
+            i < scene.triangles.size() - 2; 
+            i++
+        ) {
+        scene.triangles[i].color = {255, 0, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (
+            size_t i = scene.triangles.size() - 2; 
+            i < scene.triangles.size(); 
+            i++
+        ) {
+        scene.triangles[i].color = {0, 255, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    return scene;
+}
+
+/* 88050 faces */
+Scene Scene::boxserapis() {
+    Scene scene = {
+        {1, 1, 1}, 
+        {-0.1, 44, -115}, 
+        {0, 0.1, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/boxserapis.obj"), 
+        0.2, 
+        {}, 
+        {
+            {
+                0.5, 
+                {0, 0, -1}
+            }
+        }
+    };
+
+    for (Triangle &triangle : scene.triangles) {
+        triangle.color = {255, 255, 255};
         triangle.reflectivity = 0.2;
     }
 

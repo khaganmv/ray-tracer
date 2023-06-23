@@ -19,6 +19,8 @@ struct AABB {
 struct BVHNode {
     Vector3 AABBMin, AABBMax;
     size_t triangleFirst, triangleCount;
+
+    double cost();
 };
 
 struct BVH {
@@ -44,6 +46,10 @@ struct BVH {
         double tLim
     );
     double evaluateSAH(size_t index, int axis, double pos);
+    double findBestSplitPlane(
+        int *splitAxis, double *splitPos, 
+        size_t index
+    );
 };
 
 /* Definitions */
@@ -56,8 +62,14 @@ void AABB::grow(Vector3 p) {
 double AABB::area() {
     Vector3 extent = bMax - bMin;
 
-    // *2 test
     return extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
+}
+
+double BVHNode::cost() {
+    Vector3 extent = AABBMax - AABBMin;
+    double area = extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
+
+    return triangleCount * area;
 }
 
 BVH::BVH(vector<Triangle> _triangles) {
@@ -96,40 +108,19 @@ void BVH::updateNodeBounds(size_t index) {
 void BVH::subdivide(size_t index) {
     BVHNode &node = nodes[index];
     
-    Vector3 extent = node.AABBMax - node.AABBMin;
-    double parentArea = extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
-    double parentCost = static_cast<double>(node.triangleCount) * parentArea;
+    int splitAxis;
+    double splitPos;
+    double bestCost = findBestSplitPlane(&splitAxis, &splitPos, index);
 
-    int bestAxis = -1;
-    double bestPos = 0;
-    double bestCost = INFINITY;
-
-    for (int axis = 0; axis < 3; axis++) {
-        for (size_t i = 0; i < node.triangleCount; i++) {
-            Triangle &triangle = triangles[indices[node.triangleFirst + i]];
-            double candidatePos = triangle.centroid[axis];
-            double cost = evaluateSAH(index, axis, candidatePos);
-
-            if (cost < bestCost) {
-                bestPos = candidatePos;
-                bestAxis = axis;
-                bestCost = cost;
-            }
-        }
-    }
-
-    if (bestCost >= parentCost) {
+    if (bestCost >= node.cost()) {
         return;
     }
-
-    int axis = bestAxis;
-    double split = bestPos;
 
     int i = static_cast<int>(node.triangleFirst);
     int j = static_cast<int>(i + node.triangleCount - 1);
 
     while (i <= j) {
-        if (triangles[indices[i]].centroid[axis] < split) {
+        if (triangles[indices[i]].centroid[splitAxis] < splitPos) {
             i++;
         } else {
             size_t temp = indices[j];
@@ -257,6 +248,38 @@ double BVH::evaluateSAH(size_t index, int axis, double pos) {
     double cost = leftCount * leftBox.area() + rightCount * rightBox.area();
 
     return (cost > 0) ? cost : INFINITY;
+}
+
+double BVH::findBestSplitPlane(
+    int *splitAxis, double *splitPos, 
+    size_t index
+) {
+    double bestCost = INFINITY;
+    BVHNode &node = nodes[index];
+
+    for (int axis = 0; axis < 3; axis++) {
+        double boundsMin = node.AABBMin[axis];
+        double boundsMax = node.AABBMax[axis];
+
+        if (boundsMin == boundsMax) {
+            continue;
+        }
+
+        double scale = (boundsMax - boundsMin) / 100;
+
+        for (size_t i = 1; i < 128; i++) {
+            double pos = boundsMin + i * scale;
+            double cost = evaluateSAH(index, axis, pos);
+
+            if (cost < bestCost) {
+                *splitPos = pos;
+                *splitAxis = axis;
+                bestCost = cost;
+            }
+        }
+    }
+
+    return bestCost;
 }
 
 #endif // BVH_HPP

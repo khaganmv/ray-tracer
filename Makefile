@@ -6,9 +6,9 @@ BIN = out/main
 
 MAINFLAGS     = -Werror -Wall -Wextra -Wuninitialized -Wshadow -Wundef -O3
 CTRLFLOWFLAGS = -Winit-self -Wswitch-enum -Wswitch-default -Wformat=2 -Wformat-extra-args
-ARITHFLAGS    = -Wfloat-equal -Wpointer-arith
-CASTCONVFLAGS = -Wstrict-overflow=5 -Wcast-qual -Wcast-align -Wconversion -Wpacked
-SANFLAGS      = -Wredundant-decls -Wmissing-declarations -Wmissing-field-initializers
+ARITHFLAGS    = -Wno-float-equal -Wpointer-arith
+CASTCONVFLAGS = -Wstrict-overflow=5 -Wcast-qual -Wcast-align -Wno-conversion -Wpacked
+SANFLAGS      = -Wredundant-decls -Wmissing-declarations -Wmissing-field-initializers -Wno-maybe-uninitialized
 SPECFLAGS     = -Wzero-as-null-pointer-constant -Wctor-dtor-privacy -Wold-style-cast -Woverloaded-virtual
 
 CXXFLAGS = $(MAINFLAGS) $(CTRLFLOWFLAGS) $(ARITHFLAGS) $(CASTCONVFLAGS) $(SANFLAGS) $(SPECFLAGS)
