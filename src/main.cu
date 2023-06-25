@@ -2,6 +2,7 @@
 #include "util.cuh"
 #include <iostream>
 #include <chrono>
+#include <iomanip>
 
 #define CANVAS_PATH "out/canvas.ppm"
 #define CANVAS_WIDTH  1920
@@ -40,17 +41,21 @@ int main() {
     dim3 blocks(CANVAS_WIDTH / tx + 1, CANVAS_HEIGHT / ty + 1);
     dim3 threads(tx, ty);
 
-    auto bmStart = high_resolution_clock::now();
+    std::cout << std::fixed << std::setprecision(3);
 
-    render<<<blocks, threads>>>(canvas, scene);
-    cudaDeviceSynchronize();
+    for (size_t n = 0; n < 30; n++) {
+        auto bmStart = high_resolution_clock::now();
 
-    auto bmStop = high_resolution_clock::now();
-    auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
+        render<<<blocks, threads>>>(canvas, scene);
+        cudaDeviceSynchronize();
 
-    std::cout << "[ RTX ] " 
-              << static_cast<double>(bmDuration.count()) / 1000 
-              << " seconds.\n";
+        auto bmStop = high_resolution_clock::now();
+        auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
+
+        std::cout << static_cast<double>(bmDuration.count()) / 1000 << " ";
+    }
+
+    std::cout << "\n";
 
     try {
         saveCanvas(canvas);

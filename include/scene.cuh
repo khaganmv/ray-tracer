@@ -169,8 +169,8 @@ void Scene::initSceneErato() {
 /* 871316 faces */
 void Scene::initSceneDragon() {
     viewport = {1, 1, 1};
-    cameraPosition = {-0.0425, 0.7, -2.975};
-    cameraRotation = {0, 0.1, 0};
+    cameraPosition = {-0.0425, 0.7115, -3.0175};
+    cameraRotation = {0, 0.05, 0};
     backgroundColor = {255, 255, 255};
     ambientLight = 0.2;
     pointLights = NULL;
