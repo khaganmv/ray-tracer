@@ -13,7 +13,13 @@ struct AABB {
              bMax(Vector3(-INFINITY, -INFINITY, -INFINITY)) {}
 
     void grow(Vector3 p);
+    void grow(AABB aabb);
     double area();
+};
+
+struct Bin {
+    AABB bounds;
+    int triangleCount = 0;
 };
 
 struct BVHNode {
@@ -45,7 +51,6 @@ struct BVH {
         Vector3 bMin, Vector3 bMax, 
         double tLim
     );
-    double evaluateSAH(size_t index, int axis, double pos);
     double findBestSplitPlane(
         int *splitAxis, double *splitPos, 
         size_t index
@@ -57,6 +62,13 @@ struct BVH {
 void AABB::grow(Vector3 p) {
     bMin = bMin.min(p);
     bMax = bMax.max(p);
+}
+
+void AABB::grow(AABB aabb) {
+    if (aabb.bMin.x != INFINITY) {
+        grow(aabb.bMin);
+        grow(aabb.bMax);
+    }
 }
 
 double AABB::area() {
@@ -221,57 +233,70 @@ bool BVH::intersectRayAABB(
     return tMin < tLim && tMax > 0 && tMax >= tMin;
 }
 
-double BVH::evaluateSAH(size_t index, int axis, double pos) {
-    BVHNode &node = nodes[index];
-    AABB leftBox, rightBox;
-    int leftCount = 0, rightCount = 0;
-
-    for (size_t i = 0; i < node.triangleCount; i++) {
-        Triangle &triangle = triangles[indices[node.triangleFirst + i]];
-
-        if (triangle.centroid[axis] < pos) {
-            leftCount++;
-            leftBox.grow(triangle.v0);
-            leftBox.grow(triangle.v1);
-            leftBox.grow(triangle.v2);
-        } else {
-            rightCount++;
-            rightBox.grow(triangle.v0);
-            rightBox.grow(triangle.v1);
-            rightBox.grow(triangle.v2);
-        }
-    }
-
-    double cost = leftCount * leftBox.area() + rightCount * rightBox.area();
-
-    return (cost > 0) ? cost : INFINITY;
-}
-
 double BVH::findBestSplitPlane(
     int *splitAxis, double *splitPos, 
     size_t index
 ) {
     double bestCost = INFINITY;
     BVHNode &node = nodes[index];
+    const size_t NUM_BINS = 8;
 
     for (int axis = 0; axis < 3; axis++) {
-        double boundsMin = node.aabb.bMin[axis];
-        double boundsMax = node.aabb.bMax[axis];
+        double boundsMin = INFINITY;
+        double boundsMax = -INFINITY;
+
+        for (size_t i = 0; i < node.triangleCount; i++) {
+            Triangle &triangle = triangles[indices[node.triangleFirst + i]];
+            boundsMin = std::min(boundsMin, triangle.centroid[axis]);
+            boundsMax = std::max(boundsMax, triangle.centroid[axis]);
+        }
 
         if (boundsMin == boundsMax) {
             continue;
         }
 
-        double scale = (boundsMax - boundsMin) / 100;
+        Bin bins[NUM_BINS];
+        double scale = NUM_BINS / (boundsMax - boundsMin);
 
-        for (size_t i = 1; i < 128; i++) {
-            double pos = boundsMin + i * scale;
-            double cost = evaluateSAH(index, axis, pos);
+        for (size_t i = 0; i < node.triangleCount; i++) {
+            Triangle &triangle = triangles[indices[node.triangleFirst + i]];
+            size_t binIndex = std::min(
+                NUM_BINS - 1, 
+                static_cast<size_t>((triangle.centroid[axis] - boundsMin) * scale)
+            );
 
-            if (cost < bestCost) {
-                *splitPos = pos;
+            bins[binIndex].triangleCount++;
+            bins[binIndex].bounds.grow(triangle.v0);
+            bins[binIndex].bounds.grow(triangle.v1);
+            bins[binIndex].bounds.grow(triangle.v2);
+        }
+
+        double leftArea[NUM_BINS - 1], rightArea[NUM_BINS - 1];
+        int leftCount[NUM_BINS - 1], rightCount[NUM_BINS - 1];
+        AABB leftBox, rightBox;
+        int leftSum = 0, rightSum = 0;
+
+        for (size_t i = 0; i < NUM_BINS - 1; i++) {
+            leftSum += bins[i].triangleCount;
+            leftCount[i] = leftSum;
+            leftBox.grow(bins[i].bounds);
+            leftArea[i] = leftBox.area();
+
+            rightSum += bins[NUM_BINS - 1 - i].triangleCount;
+            rightCount[NUM_BINS - 2 - i] = rightSum;
+            rightBox.grow(bins[NUM_BINS - 1 - i].bounds);
+            rightArea[NUM_BINS - 2 - i] = rightBox.area();
+        }
+
+        double scaleInverse = (boundsMax - boundsMin) / NUM_BINS;
+
+        for (size_t i = 0; i < NUM_BINS - 1; i++) {
+            double planeCost = leftCount[i] * leftArea[i] + rightCount[i] * rightArea[i];
+
+            if (planeCost < bestCost) {
                 *splitAxis = axis;
-                bestCost = cost;
+                *splitPos = boundsMin + scaleInverse * (i + 1);
+                bestCost = planeCost;
             }
         }
     }
