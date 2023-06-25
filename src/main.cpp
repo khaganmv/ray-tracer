@@ -4,8 +4,8 @@
 #include <chrono>
 
 #define CANVAS_PATH "out/canvas.ppm"
-#define CANVAS_WIDTH  512
-#define CANVAS_HEIGHT 512
+#define CANVAS_WIDTH  1920
+#define CANVAS_HEIGHT 1920
 
 using std::thread;
 using namespace std::chrono;
@@ -24,14 +24,14 @@ int main() {
     Scene scene;
 
     try {
-        scene = Scene::serapis();
+        scene = Scene::aurelius();
     } catch (const char *e) {
         std::cerr << e;
         return -1;
     }
 
     vector<thread> threads;
-    int threadsSize = 8;
+    int threadsSize = 16;
 
     int start = -CANVAS_WIDTH / 2;
     int step = CANVAS_WIDTH / threadsSize;
@@ -50,7 +50,7 @@ int main() {
     auto bmStop = high_resolution_clock::now();
     auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
 
-    std::cout << "Duration: " 
+    std::cout << "[ RTX ] " 
               << static_cast<double>(bmDuration.count()) / 1000 
               << " seconds.\n";
 

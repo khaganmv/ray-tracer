@@ -17,7 +17,7 @@ struct AABB {
 };
 
 struct BVHNode {
-    Vector3 AABBMin, AABBMax;
+    AABB aabb;
     size_t triangleFirst, triangleCount;
 
     double cost();
@@ -66,10 +66,7 @@ double AABB::area() {
 }
 
 double BVHNode::cost() {
-    Vector3 extent = AABBMax - AABBMin;
-    double area = extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
-
-    return triangleCount * area;
+    return triangleCount * aabb.area();
 }
 
 BVH::BVH(vector<Triangle> _triangles) {
@@ -90,18 +87,18 @@ BVH::BVH(vector<Triangle> _triangles) {
 
 void BVH::updateNodeBounds(size_t index) {
     BVHNode &node = nodes[index];
-    node.AABBMin = Vector3(INFINITY, INFINITY, INFINITY);
-    node.AABBMax = Vector3(-INFINITY, -INFINITY, -INFINITY);
+    node.aabb.bMin = Vector3(INFINITY, INFINITY, INFINITY);
+    node.aabb.bMax = Vector3(-INFINITY, -INFINITY, -INFINITY);
 
     for (size_t first = node.triangleFirst, i = 0; i < node.triangleCount; i++) {
         size_t j = indices[first + i];
         Triangle& leaf = triangles[j];
-        node.AABBMin = node.AABBMin.min(leaf.v0);
-        node.AABBMin = node.AABBMin.min(leaf.v1);
-        node.AABBMin = node.AABBMin.min(leaf.v2);
-        node.AABBMax = node.AABBMax.max(leaf.v0);
-        node.AABBMax = node.AABBMax.max(leaf.v1);
-        node.AABBMax = node.AABBMax.max(leaf.v2);
+        node.aabb.bMin = node.aabb.bMin.min(leaf.v0);
+        node.aabb.bMin = node.aabb.bMin.min(leaf.v1);
+        node.aabb.bMin = node.aabb.bMin.min(leaf.v2);
+        node.aabb.bMax = node.aabb.bMax.max(leaf.v0);
+        node.aabb.bMax = node.aabb.bMax.max(leaf.v1);
+        node.aabb.bMax = node.aabb.bMax.max(leaf.v2);
     }
 }
 
@@ -162,7 +159,7 @@ tuple<bool, double, int> BVH::intersectRay(
     int closestTriangleIndex = -1;
     BVHNode &node = nodes[index];
 
-    if (!intersectRayAABB(origin, ray, node.AABBMin, node.AABBMax, closestT)) {
+    if (!intersectRayAABB(origin, ray, node.aabb.bMin, node.aabb.bMax, closestT)) {
         return { false, INFINITY, -1 };
     }
 
@@ -258,8 +255,8 @@ double BVH::findBestSplitPlane(
     BVHNode &node = nodes[index];
 
     for (int axis = 0; axis < 3; axis++) {
-        double boundsMin = node.AABBMin[axis];
-        double boundsMax = node.AABBMax[axis];
+        double boundsMin = node.aabb.bMin[axis];
+        double boundsMax = node.aabb.bMax[axis];
 
         if (boundsMin == boundsMax) {
             continue;

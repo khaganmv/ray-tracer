@@ -5,6 +5,10 @@
 #include "triangle.hpp"
 #include "light.hpp"
 #include "bvh.hpp"
+#include <iostream>
+#include <chrono>
+
+using namespace std::chrono;
 
 /* Declarations */
 
@@ -34,7 +38,16 @@ struct Scene {
         ambientLight(_ambientLight), 
         pointLights(_pointLights), 
         directionalLights(_directionalLights) {
+        auto bmStart = high_resolution_clock::now();
+
         bvh = BVH(triangles);
+
+        auto bmStop = high_resolution_clock::now();
+        auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
+
+        std::cout << "[ BVH ] " 
+                  << static_cast<double>(bmDuration.count()) / 1000 
+                  << " seconds.\n";
     }
 
     Vector3 toViewport(int x, int y, int canvasWidth, int canvasHeight);
@@ -54,14 +67,10 @@ struct Scene {
     );
 
     static vector<Triangle> parseOBJ(string OBJPath);
-    static Scene teapot();
-    static Scene suzanne();
     static Scene bunny();
-    static Scene serapis();
-    static Scene boxteapot();
-    static Scene boxsuzanne();
-    static Scene boxbunny();
-    static Scene boxserapis();
+    static Scene erato();
+    static Scene dragon();
+    static Scene aurelius();
 };
 
 /* Definitions */
@@ -193,7 +202,7 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
                     vertices[i - 1], 
                     vertices[j - 1], 
                     vertices[k - 1], 
-                    {160, 160, 160}, 
+                    {255, 255, 255}, 
                     1, 
                     -1
                 }
@@ -201,82 +210,21 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
         }
     }
 
+    std::cout << "[ TRI ] " << faces.size() << " triangles.\n";
+
     fs.close();
 
     return faces;
 }
 
-/* 6320 faces */
-Scene Scene::teapot() {
-    Scene scene = {
-        {1, 1, 1}, 
-        {0, 2, -8}, 
-        {0, 0.1, 0}, 
-        {255, 255, 255}, 
-        parseOBJ("scenes/teapot.obj"), 
-        0.2, 
-        {}, 
-        {
-            {
-                0.5, 
-                {-1, 0, -1}
-            }
-        }
-    };
-
-    return scene;
-}
-
-/* 15488 faces */
-Scene Scene::suzanne() {
-    Scene scene(
-        {1, 1, 1}, 
-        {0, 0, 3.5}, 
-        {0, 180.1, 0}, 
-        {255, 255, 255}, 
-        parseOBJ("scenes/suzanne.obj"), 
-        0.2, 
-        {}, 
-        {
-            {
-                0.5, 
-                {1, 0, 1}
-            }
-        }
-    );
-
-    return scene;
-}
-
-/* 69630 faces */
+/* 144056 faces */
 Scene Scene::bunny() {
     Scene scene = {
         {1, 1, 1}, 
-        {-0.4, 1.25, 6}, 
-        {0, 180, 0}, 
+        {0.1425, 2, -5.94}, 
+        {0, 0.1, 0}, 
         {255, 255, 255}, 
         parseOBJ("scenes/bunny.obj"), 
-        0.2, 
-        {}, 
-        {
-            {
-                0.5, 
-                {1, 0, 1}
-            }
-        }
-    };
-    
-    return scene;
-}
-
-/* 88040 faces */
-Scene Scene::serapis() {
-    Scene scene = {
-        {1, 1, 1}, 
-        {0, -3, -65}, 
-        {-30, 0, 0}, 
-        {255, 255, 255}, 
-        parseOBJ("scenes/serapis.obj"), 
         0.2, 
         {}, 
         {
@@ -287,59 +235,20 @@ Scene Scene::serapis() {
         }
     };
 
-    for (Triangle &triangle : scene.triangles) {
-        triangle.color = {255, 255, 255};
-        triangle.specularity = -1;
+    for (size_t i = 0; i < scene.triangles.size() - 10; i++) {
+        scene.triangles[i].reflectivity = 0.2;
     }
 
-    return scene;
-}
-
-/* 6330 faces */
-Scene Scene::boxteapot() {
-    Scene scene = {
-        {1, 1, 1}, 
-        {0, 4, -10}, 
-        {0, 0.1, 0}, 
-        {255, 255, 255}, 
-        parseOBJ("scenes/boxteapot.obj"), 
-        0.2, 
-        {}, 
-        {
-            {
-                0.5, 
-                {0, 0, -1}
-            }
-        }
-    };
-
-    for (Triangle &triangle : scene.triangles) {
-        triangle.reflectivity = 0.2;
-    }
-
-    for (
-            size_t i = scene.triangles.size() - 10; 
-            i < scene.triangles.size() - 4; 
-            i++
-        ) {
-        scene.triangles[i].color = {255, 255, 255};
+    for (size_t i = scene.triangles.size() - 10; i < scene.triangles.size() - 4; i++) {
         scene.triangles[i].reflectivity = 0.4;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 4; 
-            i < scene.triangles.size() - 2; 
-            i++
-        ) {
+    for (size_t i = scene.triangles.size() - 4; i < scene.triangles.size() - 2; i++) {
         scene.triangles[i].color = {0, 255, 0};
         scene.triangles[i].reflectivity = 0.4;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 2; 
-            i < scene.triangles.size(); 
-            i++
-        ) {
+    for (size_t i = scene.triangles.size() - 2; i < scene.triangles.size(); i++) {
         scene.triangles[i].color = {255, 0, 0};
         scene.triangles[i].reflectivity = 0.4;
     }
@@ -347,51 +256,38 @@ Scene Scene::boxteapot() {
     return scene;
 }
 
-/* 15498 faces */
-Scene Scene::boxsuzanne() {
+/* 412508 faces */
+Scene Scene::erato() {
     Scene scene = {
         {1, 1, 1}, 
-        {0, 1, -5}, 
+        {-0.8, 28.7, -86.1}, 
         {0, 0.1, 0}, 
         {255, 255, 255}, 
-        parseOBJ("scenes/boxsuzanne.obj"), 
+        parseOBJ("scenes/erato.obj"), 
         0.2, 
         {}, 
         {
             {
                 0.5, 
-                {0, 0, -1}
+                {0, 1, -1}
             }
         }
     };
 
-    for (Triangle &triangle : scene.triangles) {
-        triangle.reflectivity = 0.2;
+    for (size_t i = 0; i < scene.triangles.size() - 10; i++) {
+        scene.triangles[i].reflectivity = 0.2;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 10; 
-            i < scene.triangles.size() - 4; 
-            i++
-        ) {
-        scene.triangles[i].color = {255, 255, 255};
+    for (size_t i = scene.triangles.size() - 10; i < scene.triangles.size() - 4; i++) {
         scene.triangles[i].reflectivity = 0.4;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 4; 
-            i < scene.triangles.size() - 2; 
-            i++
-        ) {
+    for (size_t i = scene.triangles.size() - 4; i < scene.triangles.size() - 2; i++) {
         scene.triangles[i].color = {0, 255, 0};
         scene.triangles[i].reflectivity = 0.4;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 2; 
-            i < scene.triangles.size(); 
-            i++
-        ) {
+    for (size_t i = scene.triangles.size() - 2; i < scene.triangles.size(); i++) {
         scene.triangles[i].color = {255, 0, 0};
         scene.triangles[i].reflectivity = 0.4;
     }
@@ -399,104 +295,77 @@ Scene Scene::boxsuzanne() {
     return scene;
 }
 
-/* 69640 faces */
-Scene Scene::boxbunny() {
+/* 871316 faces */
+Scene Scene::dragon() {
     Scene scene = {
         {1, 1, 1}, 
-        {-0.245, 2, 6}, 
-        {0, 180.1, 0}, 
+        {-0.0425, 0.7, -2.975}, 
+        {0, 0.1, 0}, 
         {255, 255, 255}, 
-        parseOBJ("scenes/boxbunny.obj"), 
+        parseOBJ("scenes/dragon.obj"), 
         0.2, 
         {}, 
         {
             {
                 0.5, 
-                {0, 0, 1}
+                {0, 1, -1}
             }
         }
     };
 
-    for (Triangle &triangle : scene.triangles) {
-        triangle.reflectivity = 0.2;
+    for (size_t i = 0; i < scene.triangles.size() - 10; i++) {
+        scene.triangles[i].reflectivity = 0.2;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 10; 
-            i < scene.triangles.size() - 4; 
-            i++
-        ) {
-        scene.triangles[i].color = {255, 255, 255};
+    for (size_t i = scene.triangles.size() - 10; i < scene.triangles.size() - 4; i++) {
         scene.triangles[i].reflectivity = 0.4;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 4; 
-            i < scene.triangles.size() - 2; 
-            i++
-        ) {
-        scene.triangles[i].color = {255, 0, 0};
-        scene.triangles[i].reflectivity = 0.4;
-    }
-
-    for (
-            size_t i = scene.triangles.size() - 2; 
-            i < scene.triangles.size(); 
-            i++
-        ) {
+    for (size_t i = scene.triangles.size() - 4; i < scene.triangles.size() - 2; i++) {
         scene.triangles[i].color = {0, 255, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = scene.triangles.size() - 2; i < scene.triangles.size(); i++) {
+        scene.triangles[i].color = {255, 0, 0};
         scene.triangles[i].reflectivity = 0.4;
     }
 
     return scene;
 }
 
-/* 88050 faces */
-Scene Scene::boxserapis() {
+/* 1704768 faces */
+Scene Scene::aurelius() {
     Scene scene = {
         {1, 1, 1}, 
-        {-0.1, 44, -115}, 
+        {-0.025, 3.05, -20.9}, 
         {0, 0.1, 0}, 
         {255, 255, 255}, 
-        parseOBJ("scenes/boxserapis.obj"), 
+        parseOBJ("scenes/aurelius.obj"), 
         0.2, 
         {}, 
         {
             {
                 0.5, 
-                {0, 0, -1}
+                {0, 1, -1}
             }
         }
     };
 
-    for (Triangle &triangle : scene.triangles) {
-        triangle.color = {255, 255, 255};
-        triangle.reflectivity = 0.2;
+    for (size_t i = 0; i < scene.triangles.size() - 10; i++) {
+        scene.triangles[i].reflectivity = 0.2;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 10; 
-            i < scene.triangles.size() - 4; 
-            i++
-        ) {
-        scene.triangles[i].color = {255, 255, 255};
+    for (size_t i = scene.triangles.size() - 10; i < scene.triangles.size() - 4; i++) {
         scene.triangles[i].reflectivity = 0.4;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 4; 
-            i < scene.triangles.size() - 2; 
-            i++
-        ) {
+    for (size_t i = scene.triangles.size() - 4; i < scene.triangles.size() - 2; i++) {
         scene.triangles[i].color = {0, 255, 0};
         scene.triangles[i].reflectivity = 0.4;
     }
 
-    for (
-            size_t i = scene.triangles.size() - 2; 
-            i < scene.triangles.size(); 
-            i++
-        ) {
+    for (size_t i = scene.triangles.size() - 2; i < scene.triangles.size(); i++) {
         scene.triangles[i].color = {255, 0, 0};
         scene.triangles[i].reflectivity = 0.4;
     }
