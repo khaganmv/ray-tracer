@@ -22,8 +22,8 @@ def rotateZ(_x, _y, _z, degrees):
     z = _z
     return x, y, z
 
-p1 = "scenes/suzanne.obj"
-p2 = "scenes/suzanne1.obj"
+p1 = "scenes/lucy-o.obj"
+p2 = "scenes/lucy.obj"
 f1 = open(p1, "r")
 f2 = open(p2, "w")
 d = f1.readlines()
@@ -32,7 +32,7 @@ vl = [line for line in d if line[0] == "v"]
 fl = [line for line in d if line[0] == "f"]
 
 for i in range(len(vl)):
-    vli = vl[i].split(" ")
+    vli = vl[i].split()
     x, y, z = rotateY(float(vli[1]), float(vli[2]), float(vli[3]), 180)
     vl[i] = f"v {x} {y} {z}\n"
 

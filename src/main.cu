@@ -4,8 +4,8 @@
 #include <chrono>
 
 #define CANVAS_PATH "out/canvas.ppm"
-#define CANVAS_WIDTH  512
-#define CANVAS_HEIGHT 512
+#define CANVAS_WIDTH  1920
+#define CANVAS_HEIGHT 1920
 
 using namespace std::chrono;
 
@@ -20,7 +20,7 @@ void saveCanvas(Color *canvas);
 int main() {
     Color *canvas;
     Scene *scene;
-    SceneType sceneType = BOXTEAPOT;
+    SceneType sceneType = AURELIUS;
 
     /* Increase memory limit for recursion */
     size_t limit = 0;
@@ -48,7 +48,7 @@ int main() {
     auto bmStop = high_resolution_clock::now();
     auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
 
-    std::cout << "Duration: " 
+    std::cout << "[ RTX ] " 
               << static_cast<double>(bmDuration.count()) / 1000 
               << " seconds.\n";
 

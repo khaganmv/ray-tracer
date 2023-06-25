@@ -5,18 +5,18 @@
 #include "triangle.cuh"
 #include "light.cuh"
 #include "bvh.cuh"
+#include <iostream>
+#include <chrono>
+
+using namespace std::chrono;
 
 /* Declarations */
 
 enum SceneType {
-    TEAPOT, 
-    SUZANNE, 
     BUNNY, 
-    SERAPIS, 
-    BOXTEAPOT, 
-    BOXSUZANNE, 
-    BOXBUNNY, 
-    BOXSERAPIS
+    ERATO, 
+    DRAGON, 
+    AURELIUS
 };
 
 struct Scene {
@@ -32,40 +32,11 @@ struct Scene {
     size_t directionalLightsSize;
     BVH bvh;
 
-    Scene() = default;
-    Scene(
-        Vector3 _viewport, 
-        Vector3 _cameraPosition, Vector3 _cameraRotation, 
-        Color _backgroundColor, 
-        Triangle *_triangles,
-        size_t _trianglesSize,  
-        double _ambientLight, 
-        Point *_pointLights, 
-        size_t _pointLightsSize, 
-        Directional *_directionalLights, 
-        size_t _directionalLightsSize 
-    ) : viewport(_viewport), 
-        cameraPosition(_cameraPosition), cameraRotation(_cameraRotation), 
-        backgroundColor(_backgroundColor), 
-        triangles(_triangles), 
-        trianglesSize(_trianglesSize), 
-        ambientLight(_ambientLight), 
-        pointLights(_pointLights), 
-        pointLightsSize(_pointLightsSize),
-        directionalLights(_directionalLights), 
-        directionalLightsSize(_directionalLightsSize) {
-        bvh = BVH(triangles, trianglesSize);
-    }
-
     void initScene(SceneType sceneType);
-    void initSceneTeapot();
-    void initSceneSuzanne();
     void initSceneBunny();
-    void initSceneSerapis();
-    void initSceneBoxTeapot();
-    void initSceneBoxSuzanne();
-    void initSceneBoxBunny();
-    void initSceneBoxSerapis();
+    void initSceneErato();
+    void initSceneDragon();
+    void initSceneAurelius();
 
     vector<Triangle> parseOBJ(string OBJPath);
     __device__ 
@@ -93,14 +64,10 @@ void Scene::initScene(SceneType sceneType) {
     string OBJPath;
 
     switch (sceneType) {
-        case TEAPOT:     { OBJPath = "scenes/teapot.obj";     break; }
-        case SUZANNE:    { OBJPath = "scenes/suzanne.obj";    break; }
-        case BUNNY:      { OBJPath = "scenes/bunny.obj";      break; }
-        case SERAPIS:    { OBJPath = "scenes/serapis.obj";    break; }
-        case BOXTEAPOT:  { OBJPath = "scenes/boxteapot.obj";  break; }
-        case BOXSUZANNE: { OBJPath = "scenes/boxsuzanne.obj"; break; }
-        case BOXBUNNY:   { OBJPath = "scenes/boxbunny.obj";   break; }
-        case BOXSERAPIS: { OBJPath = "scenes/boxserapis.obj"; break; }
+        case BUNNY:    { OBJPath = "scenes/bunny.obj";    break; }
+        case ERATO:    { OBJPath = "scenes/erato.obj";    break; }
+        case DRAGON:   { OBJPath = "scenes/dragon.obj";   break; }
+        case AURELIUS: { OBJPath = "scenes/aurelius.obj"; break; }
     }
 
     vector<Triangle> faces = parseOBJ(OBJPath);
@@ -111,7 +78,16 @@ void Scene::initScene(SceneType sceneType) {
         triangles[i] = faces[i];
     }
 
+    auto bmStart = high_resolution_clock::now();
+
     bvh = BVH(triangles, trianglesSize);
+
+    auto bmStop = high_resolution_clock::now();
+    auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
+
+    std::cout << "[ BVH ] " 
+              << static_cast<double>(bmDuration.count()) / 1000 
+              << " seconds.\n";
 
     directionalLightsSize = 1;
     cudaMallocManaged(
@@ -119,175 +95,23 @@ void Scene::initScene(SceneType sceneType) {
         directionalLightsSize * sizeof(Directional)
     );
 
-    switch (sceneType) {
-        case TEAPOT:     { directionalLights[0] = { 0.5, {-1, 0, -1} }; break; }
-        case SUZANNE:    { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
-        case BUNNY:      { directionalLights[0] = { 0.5, { 1, 0,  1} }; break; }
-        case SERAPIS:    { directionalLights[0] = { 0.5, { 0, 1, -1} }; break; }
-        case BOXTEAPOT:  { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
-        case BOXSUZANNE: { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
-        case BOXBUNNY:   { directionalLights[0] = { 0.5, { 0, 0,  1} }; break; }
-        case BOXSERAPIS: { directionalLights[0] = { 0.5, { 0, 0, -1} }; break; }
-    }
+    directionalLights[0] = { 0.5, { 0, 1, -1 } };
 
     cudaPrefetch(triangles, trianglesSize * sizeof(Triangle));
     cudaPrefetch(directionalLights, directionalLightsSize * sizeof(Directional));
 
     switch (sceneType) { 
-        case TEAPOT:     { initSceneTeapot();     break; }
-        case SUZANNE:    { initSceneSuzanne();    break; }
-        case BUNNY:      { initSceneBunny();      break; }
-        case SERAPIS:    { initSceneSerapis();    break; }
-        case BOXTEAPOT:  { initSceneBoxTeapot();  break; }
-        case BOXSUZANNE: { initSceneBoxSuzanne(); break; }
-        case BOXBUNNY:   { initSceneBoxBunny();   break; }
-        case BOXSERAPIS: { initSceneBoxSerapis(); break; }
+        case BUNNY:    { initSceneBunny();    break; }
+        case ERATO:    { initSceneErato();    break; }
+        case DRAGON:   { initSceneDragon();   break; }
+        case AURELIUS: { initSceneAurelius(); break; }
     }
 }
 
-/* 6320 faces */
-void Scene::initSceneTeapot() {
-    viewport = {1, 1, 1};
-    cameraPosition = {0, 2, -8};
-    cameraRotation = {0, 0.1, 0};
-    backgroundColor = {255, 255, 255};
-    ambientLight = 0.2;
-    pointLights = NULL;
-    pointLightsSize = 0;
-}
-
-/* 15488 faces */
-void Scene::initSceneSuzanne() {
-    viewport = {1, 1, 1};
-    cameraPosition = {0, 0, 3.5};
-    cameraRotation = {0, 180.1, 0};
-    backgroundColor = {255, 255, 255};
-    ambientLight = 0.2;
-    pointLights = NULL;
-    pointLightsSize = 0;
-}
-
-/* 69630 faces */
+/* 144056 faces */
 void Scene::initSceneBunny() {
     viewport = {1, 1, 1};
-    cameraPosition = {-0.4, 1.25, 6};
-    cameraRotation = {0, 180, 0};
-    backgroundColor = {255, 255, 255};
-    ambientLight = 0.2;
-    pointLights = NULL;
-    pointLightsSize = 0;
-}
-
-/* 88040 faces */
-void Scene::initSceneSerapis() {
-    viewport = {1, 1, 1};
-    cameraPosition = {0, -3, -65};
-    cameraRotation = {-30, 0, 0};
-    backgroundColor = {255, 255, 255};
-    ambientLight = 0.2;
-    pointLights = NULL;
-    pointLightsSize = 0;
-
-    for (size_t i = 0; i < trianglesSize; i++) {
-        triangles[i].color = {255, 255, 255};
-        triangles[i].specularity = -1;
-    }
-}
-
-/* 6330 faces */
-void Scene::initSceneBoxTeapot() {
-    viewport = {1, 1, 1};
-    cameraPosition = {0, 4, -10};
-    cameraRotation = {0, 0.1, 0};
-    backgroundColor = {255, 255, 255};
-    ambientLight = 0.2;
-    pointLights = NULL;
-    pointLightsSize = 0;
-
-    for (size_t i = 0; i < trianglesSize; i++) {
-        triangles[i].reflectivity = 0.2;
-    }
-
-    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
-        triangles[i].color = {255, 255, 255};
-        triangles[i].reflectivity = 0.4;
-    }
-
-    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
-        triangles[i].color = {0, 255, 0};
-        triangles[i].reflectivity = 0.4;
-    }
-
-    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
-        triangles[i].color = {255, 0, 0};
-        triangles[i].reflectivity = 0.4;
-    }
-}
-
-/* 15498 faces */
-void Scene::initSceneBoxSuzanne() {
-    viewport = {1, 1, 1};
-    cameraPosition = {0, 1, -5};
-    cameraRotation = {0, 0.1, 0};
-    backgroundColor = {255, 255, 255};
-    ambientLight = 0.2;
-    pointLights = NULL;
-    pointLightsSize = 0;
-
-    for (size_t i = 0; i < trianglesSize; i++) {
-        triangles[i].reflectivity = 0.2;
-    }
-
-    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
-        triangles[i].color = {255, 255, 255};
-        triangles[i].reflectivity = 0.4;
-    }
-
-    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
-        triangles[i].color = {0, 255, 0};
-        triangles[i].reflectivity = 0.4;
-    }
-
-    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
-        triangles[i].color = {255, 0, 0};
-        triangles[i].reflectivity = 0.4;
-    }
-}
-
-/* 69640 faces */
-void Scene::initSceneBoxBunny() {
-    viewport = {1, 1, 1};
-    cameraPosition = {-0.4, 2, 6.5};
-    cameraRotation = {0, 180.1, 0};
-    backgroundColor = {255, 255, 255};
-    ambientLight = 0.2;
-    pointLights = NULL;
-    pointLightsSize = 0;
-
-    for (size_t i = 0; i < trianglesSize; i++) {
-        triangles[i].reflectivity = 0.2;
-    }
-
-    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
-        triangles[i].color = {255, 255, 255};
-        triangles[i].reflectivity = 0.4;
-    }
-
-    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
-        triangles[i].color = {255, 0, 0};
-        triangles[i].reflectivity = 0.4;
-    }
-
-    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
-        triangles[i].color = {0, 255, 0};
-        triangles[i].reflectivity = 0.4;
-    }
-}
-
-/* 88050 faces */
-void Scene::initSceneBoxSerapis() {
-    viewport = {1, 1, 1};
-    cameraPosition = {-0.1, 44, -115};
+    cameraPosition = {0.1425, 2, -5.94};
     cameraRotation = {0, 0.1, 0};
     backgroundColor = {255, 255, 255};
     ambientLight = 0.2;
@@ -295,12 +119,97 @@ void Scene::initSceneBoxSerapis() {
     pointLightsSize = 0;
 
     for (size_t i = 0; i < trianglesSize - 10; i++) {
-        triangles[i].color = {255, 255, 255};
         triangles[i].reflectivity = 0.2;
     }
 
     for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
-        triangles[i].color = {255, 255, 255};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
+        triangles[i].color = {0, 255, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
+        triangles[i].color = {255, 0, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+}
+
+/* 412508 faces */
+void Scene::initSceneErato() {
+    viewport = {1, 1, 1};
+    cameraPosition = {-0.8, 28.7, -86.1};
+    cameraRotation = {0, 0.1, 0};
+    backgroundColor = {255, 255, 255};
+    ambientLight = 0.2;
+    pointLights = NULL;
+    pointLightsSize = 0;
+
+    for (size_t i = 0; i < trianglesSize - 10; i++) {
+        triangles[i].reflectivity = 0.2;
+    }
+
+    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
+        triangles[i].color = {0, 255, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
+        triangles[i].color = {255, 0, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+}
+
+/* 871316 faces */
+void Scene::initSceneDragon() {
+    viewport = {1, 1, 1};
+    cameraPosition = {-0.0425, 0.7, -2.975};
+    cameraRotation = {0, 0.1, 0};
+    backgroundColor = {255, 255, 255};
+    ambientLight = 0.2;
+    pointLights = NULL;
+    pointLightsSize = 0;
+
+    for (size_t i = 0; i < trianglesSize - 10; i++) {
+        triangles[i].reflectivity = 0.2;
+    }
+
+    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
+        triangles[i].color = {0, 255, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
+        triangles[i].color = {255, 0, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+}
+
+/* 1704768 faces */
+void Scene::initSceneAurelius() {
+    viewport = {1, 1, 1};
+    cameraPosition = {-0.025, 3.05, -20.9};
+    cameraRotation = {0, 0.1, 0};
+    backgroundColor = {255, 255, 255};
+    ambientLight = 0.2;
+    pointLights = NULL;
+    pointLightsSize = 0;
+
+    for (size_t i = 0; i < trianglesSize - 10; i++) {
+        triangles[i].reflectivity = 0.2;
+    }
+
+    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
         triangles[i].reflectivity = 0.4;
     }
 
@@ -342,13 +251,15 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
                     vertices[i - 1], 
                     vertices[j - 1], 
                     vertices[k - 1], 
-                    {160, 160, 160}, 
+                    {255, 255, 255}, 
                     1, 
                     -1
                 }
             );
         }
     }
+
+    std::cout << "[ TRI ] " << faces.size() << " triangles.\n";
 
     fs.close();
 
