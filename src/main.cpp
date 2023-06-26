@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <iomanip>
 
 #define CANVAS_PATH "out/canvas.ppm"
 #define CANVAS_WIDTH  1920
@@ -36,23 +37,30 @@ int main() {
     int start = -CANVAS_WIDTH / 2;
     int step = CANVAS_WIDTH / threadsSize;
 
-    auto bmStart = high_resolution_clock::now();
+    std::cout << std::fixed << std::setprecision(3);
 
-    for (int i = 0; i < threadsSize; i++) {
-        threads.push_back(thread(render, scene, start, start + step));
-        start += step;
+    for (size_t n = 0; n < 30; n++) {
+        auto bmStart = high_resolution_clock::now();
+
+        for (int i = 0; i < threadsSize; i++) {
+            threads.push_back(thread(render, scene, start, start + step));
+            start += step;
+        }
+
+        for (int i = 0; i < threadsSize; i++) {
+            threads[i].join();
+        }
+
+        auto bmStop = high_resolution_clock::now();
+        auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
+
+        std::cout << static_cast<double>(bmDuration.count()) / 1000 << " ";
+
+        threads.clear();
+        start = -CANVAS_WIDTH / 2;
     }
 
-    for (int i = 0; i < threadsSize; i++) {
-        threads[i].join();
-    }
-
-    auto bmStop = high_resolution_clock::now();
-    auto bmDuration = duration_cast<milliseconds>(bmStop - bmStart);
-
-    std::cout << "[ RTX ] " 
-              << static_cast<double>(bmDuration.count()) / 1000 
-              << " seconds.\n";
+    std::cout << "\n";
 
     try {
         saveCanvas();

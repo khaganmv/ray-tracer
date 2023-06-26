@@ -299,7 +299,7 @@ Scene Scene::erato() {
 Scene Scene::dragon() {
     Scene scene = {
         {1, 1, 1}, 
-        {-0.0425, 0.7, -2.975}, 
+        {-0.0425, 0.7115, -3.01725}, 
         {0, 0.1, 0}, 
         {255, 255, 255}, 
         parseOBJ("scenes/dragon.obj"), 
