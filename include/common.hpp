@@ -11,6 +11,8 @@
 
 #define EPSILON std::numeric_limits<double>::epsilon() * 1048576.0
 
+#define USE_BVH 0
+
 using std::tuple;
 using std::array;
 using std::vector;

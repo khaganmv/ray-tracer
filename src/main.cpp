@@ -25,21 +25,21 @@ int main() {
     Scene scene;
 
     try {
-        scene = Scene::aurelius();
+        scene = Scene::teapot();
     } catch (const char *e) {
         std::cerr << e;
         return -1;
     }
 
     vector<thread> threads;
-    int threadsSize = 16;
+    int threadsSize = 8;
 
     int start = -CANVAS_WIDTH / 2;
     int step = CANVAS_WIDTH / threadsSize;
 
     std::cout << std::fixed << std::setprecision(3);
 
-    for (size_t n = 0; n < 30; n++) {
+    for (size_t n = 0; n < 3; n++) {
         auto bmStart = high_resolution_clock::now();
 
         for (int i = 0; i < threadsSize; i++) {

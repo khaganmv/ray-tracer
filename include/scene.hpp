@@ -38,6 +38,7 @@ struct Scene {
         ambientLight(_ambientLight), 
         pointLights(_pointLights), 
         directionalLights(_directionalLights) {
+#if USE_BVH
         auto bmStart = high_resolution_clock::now();
 
         bvh = BVH(triangles);
@@ -48,6 +49,7 @@ struct Scene {
         std::cout << "[ BVH ] " 
                   << static_cast<double>(bmDuration.count()) / 1000 
                   << " seconds.\n";
+#endif
     }
 
     Vector3 toViewport(int x, int y, int canvasWidth, int canvasHeight);
@@ -67,6 +69,7 @@ struct Scene {
     );
 
     static vector<Triangle> parseOBJ(string OBJPath);
+    static Scene teapot();
     static Scene bunny();
     static Scene erato();
     static Scene dragon();
@@ -86,7 +89,11 @@ Vector3 Scene::toViewport(int x, int y, int canvasWidth, int canvasHeight) {
 Color Scene::traceRay(
     Vector3 origin, Vector3 ray, double tMin, double tMax, int recursionDepth
 ) {
+#if USE_BVH
     tuple<bool, double, int> intersection = bvh.intersectRay(origin, ray, tMin, tMax, 0);
+#else
+    tuple<bool, double, int> intersection = closestIntersection(origin, ray, tMin, tMax);
+#endif
     bool intersectsAny = std::get<0>(intersection);
     double closestT = std::get<1>(intersection);
     int closestTriangleIndex = std::get<2>(intersection);
@@ -144,7 +151,11 @@ double Scene::computeLighting(
     double totalIntensity = 0.0;
 
     /* Shadow check */
+#if USE_BVH
     tuple<bool, double, int> intersection = bvh.intersectRay(point, light, 0.001, tMax, 0);
+#else
+    tuple<bool, double, int> intersection = closestIntersection(point, light, 0.001, tMax);
+#endif
     bool intersectsAny = std::get<0>(intersection);
 
     if (intersectsAny) {
@@ -173,6 +184,30 @@ double Scene::computeLighting(
 
 Vector3 Scene::reflectRay(Vector3 ray, Vector3 normal) {
     return 2 * normal * normal.dot(ray) - ray;
+}
+
+tuple<bool, double, int> Scene::closestIntersection(
+    Vector3 origin, Vector3 ray, double tMin, double tMax
+) {
+    bool intersectsAny = false;
+    double closestT = INFINITY;
+    int closestTriangleIndex = -1;
+
+    for (size_t i = 0; i < this->triangles.size(); i++) {
+        tuple<bool, double> intersection = triangles[i].intersectRay(origin, ray);
+        bool intersects = std::get<0>(intersection);
+        double t = std::get<1>(intersection);
+
+        if (intersects) {
+            if (t > tMin && t < tMax && t < closestT) {
+                intersectsAny = true;
+                closestT = t;
+                closestTriangleIndex = static_cast<int>(i);
+            }
+        }
+    }
+
+    return { intersectsAny, closestT, closestTriangleIndex };
 }
 
 vector<Triangle> Scene::parseOBJ(string OBJPath) {
@@ -215,6 +250,45 @@ vector<Triangle> Scene::parseOBJ(string OBJPath) {
     fs.close();
 
     return faces;
+}
+
+/* 6330 faces */
+Scene Scene::teapot() {
+    Scene scene = {
+        {1, 1, 1}, 
+        {-0.015, 4, -11.99}, 
+        {0, 0.1, 0}, 
+        {255, 255, 255}, 
+        parseOBJ("scenes/teapot.obj"), 
+        0.2, 
+        {}, 
+        {
+            {
+                0.5, 
+                {0, 1, -1}
+            }
+        }
+    };
+
+    for (size_t i = 0; i < scene.triangles.size() - 10; i++) {
+        scene.triangles[i].reflectivity = 0.2;
+    }
+
+    for (size_t i = scene.triangles.size() - 10; i < scene.triangles.size() - 4; i++) {
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = scene.triangles.size() - 4; i < scene.triangles.size() - 2; i++) {
+        scene.triangles[i].color = {0, 255, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = scene.triangles.size() - 2; i < scene.triangles.size(); i++) {
+        scene.triangles[i].color = {255, 0, 0};
+        scene.triangles[i].reflectivity = 0.4;
+    }
+
+    return scene;
 }
 
 /* 144056 faces */

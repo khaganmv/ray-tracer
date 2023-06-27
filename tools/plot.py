@@ -29,8 +29,8 @@ gpu = [bunny_gpu, erato_gpu, dragon_gpu, aurelius_gpu]
 
 WIDTH = 0.3
 
-plt.bar(x,         cpu, WIDTH, label="CPU", color="g")
-plt.bar(x + WIDTH, gpu, WIDTH, label="GPU", color="r")
+plt.bar(x,         cpu, WIDTH, label="CPU", color="r")
+plt.bar(x + WIDTH, gpu, WIDTH, label="GPU", color="g")
 
 plt.xticks(x + WIDTH / 2, scenes, fontsize=8)
 plt.xlabel("Scenes")
@@ -63,3 +63,16 @@ plt.ylabel("Factor")
 plt.title("Speedup")
 plt.legend()
 plt.savefig("plots/speedup.png", dpi=1200)
+
+print("Bunny CPU mean: " + str(bunny_cpu))
+print("Bunny GPU mean: " + str(bunny_gpu))
+print("Speedup: " + str(bunny_gpu/bunny_cpu))
+print("Erato CPU mean: " + str(erato_cpu))
+print("Erato GPU mean: " + str(erato_gpu))
+print("Speedup: " + str(erato_gpu/erato_cpu))
+print("Dragon CPU mean: " + str(dragon_cpu))
+print("Dragon GPU mean: " + str(dragon_gpu))
+print("Speedup: " + str(dragon_gpu/dragon_cpu))
+print("Aurelius CPU mean: " + str(aurelius_cpu))
+print("Aurelius GPU mean: " + str(aurelius_gpu))
+print("Speedup: " + str(aurelius_gpu/aurelius_cpu))
