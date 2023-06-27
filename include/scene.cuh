@@ -13,6 +13,7 @@ using namespace std::chrono;
 /* Declarations */
 
 enum SceneType {
+    TEAPOT, 
     BUNNY, 
     ERATO, 
     DRAGON, 
@@ -33,6 +34,7 @@ struct Scene {
     BVH bvh;
 
     void initScene(SceneType sceneType);
+    void initSceneTeapot();
     void initSceneBunny();
     void initSceneErato();
     void initSceneDragon();
@@ -56,6 +58,11 @@ struct Scene {
     );
     __device__ 
     Vector3 reflectRay(Vector3 ray, Vector3 normal);
+    __device__ 
+    bool closestIntersection(
+        double *closestT, int *closestTriangleIndex, 
+        Vector3 origin, Vector3 ray, double tMin, double tMax
+    );
 };
 
 /* Definitions */
@@ -64,6 +71,7 @@ void Scene::initScene(SceneType sceneType) {
     string OBJPath;
 
     switch (sceneType) {
+        case TEAPOT:   { OBJPath = "scenes/teapot.obj";   break; }
         case BUNNY:    { OBJPath = "scenes/bunny.obj";    break; }
         case ERATO:    { OBJPath = "scenes/erato.obj";    break; }
         case DRAGON:   { OBJPath = "scenes/dragon.obj";   break; }
@@ -78,6 +86,7 @@ void Scene::initScene(SceneType sceneType) {
         triangles[i] = faces[i];
     }
 
+#if USE_BVH
     auto bmStart = high_resolution_clock::now();
 
     bvh = BVH(triangles, trianglesSize);
@@ -88,6 +97,7 @@ void Scene::initScene(SceneType sceneType) {
     std::cout << "[ BVH ] " 
               << static_cast<double>(bmDuration.count()) / 1000 
               << " seconds.\n";
+#endif
 
     directionalLightsSize = 1;
     cudaMallocManaged(
@@ -101,10 +111,40 @@ void Scene::initScene(SceneType sceneType) {
     cudaPrefetch(directionalLights, directionalLightsSize * sizeof(Directional));
 
     switch (sceneType) { 
+        case TEAPOT:   { initSceneTeapot();   break; }
         case BUNNY:    { initSceneBunny();    break; }
         case ERATO:    { initSceneErato();    break; }
         case DRAGON:   { initSceneDragon();   break; }
         case AURELIUS: { initSceneAurelius(); break; }
+    }
+}
+
+/* 6330 faces */
+void Scene::initSceneTeapot() {
+    viewport = {1, 1, 1};
+    cameraPosition = {-0.015, 4, -11.99};
+    cameraRotation = {0, 0.1, 0};
+    backgroundColor = {255, 255, 255};
+    ambientLight = 0.2;
+    pointLights = NULL;
+    pointLightsSize = 0;
+
+    for (size_t i = 0; i < trianglesSize - 10; i++) {
+        triangles[i].reflectivity = 0.2;
+    }
+
+    for (size_t i = trianglesSize - 10; i < trianglesSize - 4; i++) {
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 4; i < trianglesSize - 2; i++) {
+        triangles[i].color = {0, 255, 0};
+        triangles[i].reflectivity = 0.4;
+    }
+
+    for (size_t i = trianglesSize - 2; i < trianglesSize; i++) {
+        triangles[i].color = {255, 0, 0};
+        triangles[i].reflectivity = 0.4;
     }
 }
 
@@ -282,7 +322,11 @@ Color Scene::traceRay(
     double closestT;
     int closestTriangleIndex;
 
+#if USE_BVH
     if (!bvh.intersectRay(&closestT, &closestTriangleIndex, origin, ray, tMin, tMax, 0)) {
+#else
+    if (!closestIntersection(&closestT, &closestTriangleIndex, origin, ray, tMin, tMax)) {
+#endif
         return backgroundColor;
     }
 
@@ -341,7 +385,11 @@ double Scene::computeLighting(
     int closestTriangleIndex;
 
     /* Shadow check */
+#if USE_BVH
     if (bvh.intersectRay(&closestT, &closestTriangleIndex, point, light, 0.001, tMax, 0)) {
+#else
+    if (closestIntersection(&closestT, &closestTriangleIndex, point, light, 0.001, tMax)) {
+#endif
         return totalIntensity;
     }
 
@@ -368,6 +416,30 @@ double Scene::computeLighting(
 __device__ 
 Vector3 Scene::reflectRay(Vector3 ray, Vector3 normal) {
     return 2 * normal * normal.dot(ray) - ray;
+}
+
+__device__ 
+bool Scene::closestIntersection(
+    double *closestT, int *closestTriangleIndex, 
+    Vector3 origin, Vector3 ray, double tMin, double tMax
+) {
+    bool intersectsAny = false;
+    *closestT = INFINITY;
+    *closestTriangleIndex = -1;
+
+    for (size_t i = 0; i < trianglesSize; i++) {
+        double t;
+
+        if (triangles[i].intersectRay(&t, origin, ray)) {
+            if (t > tMin && t < tMax && t < *closestT) {
+                intersectsAny = true;
+                *closestT = t;
+                *closestTriangleIndex = static_cast<int>(i);
+            }
+        }
+    }
+
+    return intersectsAny;
 }
 
 #endif // SCENE_CUH

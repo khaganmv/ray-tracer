@@ -1,6 +1,6 @@
 from math import ceil
 
-p1 = "scenes/lucy.obj"
+p1 = "scenes/teapot.obj"
 f1 = open(p1, "r")
 d = f1.readlines()
 

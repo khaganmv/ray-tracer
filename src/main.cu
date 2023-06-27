@@ -21,7 +21,7 @@ void saveCanvas(Color *canvas);
 int main() {
     Color *canvas;
     Scene *scene;
-    SceneType sceneType = AURELIUS;
+    SceneType sceneType = TEAPOT;
 
     /* Increase memory limit for recursion */
     size_t limit = 0;
@@ -43,7 +43,7 @@ int main() {
 
     std::cout << std::fixed << std::setprecision(3);
 
-    for (size_t n = 0; n < 30; n++) {
+    for (size_t n = 0; n < 1; n++) {
         auto bmStart = high_resolution_clock::now();
 
         render<<<blocks, threads>>>(canvas, scene);

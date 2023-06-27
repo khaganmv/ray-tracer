@@ -9,6 +9,8 @@
 
 #define EPSILON 2.32831e-10
 
+#define USE_BVH 0
+
 using std::vector;
 using std::string;
 using std::fstream;
