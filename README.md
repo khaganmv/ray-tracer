@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="images/erato.png"/>
+</p>
+
 # References
 
 1. [Computer Graphics from Scratch](https://gabrielgambetta.com/computer-graphics-from-scratch/)
